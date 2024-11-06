@@ -15,7 +15,8 @@ public class Server {
 
             while (true) {
                 try {
-                    handleConnection(ss);
+                    Socket socket = ss.accept();
+                    handleConnection(socket);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -25,9 +26,7 @@ public class Server {
         }
     }
 
-    private static void handleConnection(ServerSocket ss) throws IOException {
-        Socket socket = ss.accept();
-
+    private static void handleConnection(Socket socket) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(socket.getOutputStream());
 
