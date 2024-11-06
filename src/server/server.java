@@ -8,6 +8,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
+    public Server() {}
 
     public static void main(String[] args) {
         try (ServerSocket ss = new ServerSocket(8080)) {
