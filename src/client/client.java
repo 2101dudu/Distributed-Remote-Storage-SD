@@ -9,17 +9,18 @@ public class Client {
     public static void main(String[] args) {
         try {
             Socket socket = new Socket("localhost", 8080);
+            System.out.println("Connected to server!");
 
             // in & out socket
-            // BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream());
 
-            System.out.println("Connected to server!");
-            
-            String stringToSend = "1";
-
+            String stringToSend = "Hello from client!";
             out.println(stringToSend);
             out.flush();
+
+            String stringToRead = in.readLine();
+            System.out.println("Received from server: " + stringToRead);
 
             socket.shutdownOutput();
             socket.shutdownInput();
