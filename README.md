@@ -19,3 +19,7 @@ This project implements a distributed in-memory data storage system, allowing cl
 - [Hélder Gomes](https://www.github.com/helderrrg)
 - [Nuno Siva](https://www.github.com/NunoMRS7)
 - [Pedro Pereira](https://www.github.com/pedrofp4444)
+
+## Apointments
+- Validar se podemos assumir que podemos passar todas as responsabilidades de encode e decode para fora do servidor/cliente.
+- Confirmar se todo o processo de definição da barreira de threads é necessário estar numa thread.
