@@ -1,3 +1,9 @@
+package client;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.Socket;
+
 public class ClientMain {
 //    public static void main(String[] args) {
 //        Client client = new Client();
@@ -6,22 +12,24 @@ public class ClientMain {
 
     public static void main(String[] args) {
         try {
+            Socket socket = new Socket("localhost", 8080);
+
             System.out.println("Connected to server!");
 
-            // in & out socket
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter out = new PrintWriter(socket.getOutputStream());
+            // ask for key from stdin
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print("Enter key: ");
+            String key = reader.readLine();
 
-            String stringToSend = "Hello from client!";
-            out.println(stringToSend);
-            out.flush();
+            // ask for data from stdin
+            System.out.print("Enter data: ");
+            String data = reader.readLine();
 
-            String stringToRead = in.readLine();
-            System.out.println("Received from server: " + stringToRead);
+            // convert data to []byte
+            byte[] value = data.getBytes();
 
-            socket.shutdownOutput();
-            socket.shutdownInput();
-            socket.close();
+            Client client = new Client(socket);
+            client.put(key, value);
         } catch (Exception e) {
             e.printStackTrace();
         }

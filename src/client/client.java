@@ -1,15 +1,14 @@
 package client;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class Client {
     private Socket socket;
 
-    private Client() {
-        Socket socket = new Socket("localhost", 8080);
+    public Client(Socket socket) {
+        this.socket = socket;
     }
 
 
@@ -22,7 +21,7 @@ public class Client {
 
     // [ATENÇÃO] A implementação do método put() não está a ter em conta
     // diferentes tipos de mensagens, mais propriamente, diferentes headers.
-    private void put(String key, byte[] value) throws IOException {
+    public void put(String key, byte[] value) throws IOException {
         try (OutputStream out = new BufferedOutputStream(this.socket.getOutputStream())) {
             byte[] header = key.getBytes(StandardCharsets.UTF_8);
             if (header.length > 255) throw new IllegalArgumentException("Key length exceeds 255 bytes");
@@ -53,7 +52,7 @@ public class Client {
 
     // [ATENÇÃO] A implementação do método get() não está a ter em conta
     // diferentes tipos de mensagens, mais propriamente, diferentes headers.
-    private byte[] get(String key) {
+    public byte[] get(String key) throws IOException {
         try (OutputStream out = new BufferedOutputStream(this.socket.getOutputStream());
                 InputStream in = new BufferedInputStream(this.socket.getInputStream())) {
 
@@ -63,12 +62,14 @@ public class Client {
             out.write(header);
             out.flush();
 
-            byte[] data = in.read();
+            byte[] data = new byte[4096];
+            int bytesRead = in.read(data);
 
+            if (bytesRead == -1) return null;
             return data;
         } finally {
             this.socket.close();
-        }
+        } 
     }
 }
 
