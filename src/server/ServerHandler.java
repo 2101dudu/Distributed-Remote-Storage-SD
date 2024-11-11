@@ -33,7 +33,7 @@ public class ServerHandler implements Runnable {
         } else {
             byte headerLength = data[0];
 
-            System.out.println("Received " + bytesRead + " bytes, header lenth of" + headerLength + " and data " + new String(data, 1, bytesRead));
+            System.out.println("Received " + bytesRead + " bytes, header lenth of " + headerLength + " and data " + "\"" + new String(data, 1, bytesRead) + "\"");
         }
 
         this.socket.shutdownInput();

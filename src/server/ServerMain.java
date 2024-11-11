@@ -11,7 +11,7 @@ public class ServerMain {
             
             while (true) {
                 Socket socket = ss.accept();
-                var thread = new Thread(new ServerHandler(socket));
+                Thread thread = new Thread(new ServerHandler(socket));
                 thread.start();
             }
         } catch (IOException e) {
