@@ -22,7 +22,7 @@ public class Client {
     // [ATENÇÃO] A implementação do método put() não está a ter em conta
     // diferentes tipos de mensagens, mais propriamente, diferentes headers.
     public void put(String key, byte[] value) throws IOException {
-        try (OutputStream out = new BufferedOutputStream(this.socket.getOutputStream())) {
+        try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()))) {
             byte[] header = key.getBytes(StandardCharsets.UTF_8);
             if (header.length > 255) throw new IllegalArgumentException("Key length exceeds 255 bytes");
 
@@ -53,8 +53,8 @@ public class Client {
     // [ATENÇÃO] A implementação do método get() não está a ter em conta
     // diferentes tipos de mensagens, mais propriamente, diferentes headers.
     public byte[] get(String key) throws IOException {
-        try (OutputStream out = new BufferedOutputStream(this.socket.getOutputStream());
-                InputStream in = new BufferedInputStream(this.socket.getInputStream())) {
+        try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
+             DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()))) {
 
             byte[] header = key.getBytes(StandardCharsets.UTF_8);
             if (header.length > 255) throw new IllegalArgumentException("Key length exceeds 255 bytes");

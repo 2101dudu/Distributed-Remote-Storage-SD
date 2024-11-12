@@ -1,6 +1,7 @@
 package server;
 
 import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -21,7 +22,7 @@ public class ServerHandler implements Runnable {
     }
 
     private void handleConnection() throws IOException {
-        BufferedInputStream in = new BufferedInputStream(this.socket.getInputStream());
+        DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()));
 
         byte[] data = new byte[4096];
         int bytesRead = in.read(data);
