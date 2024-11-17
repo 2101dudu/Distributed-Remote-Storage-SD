@@ -10,14 +10,15 @@ public class SingleEntry {
     private String key;
     private byte[] data;
 
-
+    public SingleEntry() {
+        this.key = null;
+        this.data = null;
+    }
 
     public SingleEntry(String key, byte[] data) {
         this.key = key;
         this.data = Arrays.copyOf(data, data.length); // shallow copy
     }
-
-
 
     public String getKey() {
         return this.key;
@@ -35,8 +36,6 @@ public class SingleEntry {
         this.data = Arrays.copyOf(data, data.length); // shallow copy
     }
 
-
-
     public void serialize(DataOutputStream out) throws IOException {
         out.writeUTF(this.key);
         int dataLength = this.data.length;
@@ -48,11 +47,8 @@ public class SingleEntry {
         String key = in.readUTF();
         int dataLength = in.readInt();
         byte[] data = in.readNBytes(dataLength);
-
         return new SingleEntry(key, data);
     }
-
-
 
     public String toString() {
         String s = "key: " + this.key + " --> Data: ";
