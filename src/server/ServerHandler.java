@@ -9,10 +9,13 @@ import java.net.Socket;
 import java.security.KeyStore.Entry;
 import java.util.Arrays;
 
+import entries.AtomicGetPacket;
+import entries.Packet;
 import entries.SingleEntry;
 
 public class ServerHandler implements Runnable {
     private Socket socket;
+    private Server server;
 
     public ServerHandler(Socket socket) {
         this.socket = socket;
@@ -31,26 +34,26 @@ public class ServerHandler implements Runnable {
         try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
             DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()))) {
 
-
-            // client put method debug ---------------------------------------------------------------------
-            SingleEntry singleEntry = SingleEntry.deserialize(in);
-            System.out.println("Entry received from client: " + singleEntry.toString());
-            // ---------------------------------------------------------------------------------------------
-
-
-            // client get method debug ---------------------------------------------------------------------
-            String key = in.readUTF();
-            // in.close(); ??
-            // **[SIMULATION]** get data corresponding to key from map ***************************
-            byte[] dataToSend = Arrays.copyOf(singleEntry.getData(),singleEntry.getData().length);
-            // ***********************************************************************************
-            SingleEntry entryToSend = new SingleEntry(key, dataToSend);
-            entryToSend.serialize(out);
-            out.flush();
-            // out.close(); ??
-            // ---------------------------------------------------------------------------------------------
-        
-
+            boolean flag = true;
+            while (flag) {
+                System.out.println("Handler");
+                Object packet = Packet.deserialize(in);
+                System.out.println("Object deserialized!");
+                if (packet instanceof SingleEntry) {
+                    SingleEntry singleEntry = (SingleEntry) packet;
+                    System.out.println("Entry received from client: " + singleEntry.toString());
+                    server.update(singleEntry);
+                    break;
+                } else if (packet instanceof AtomicGetPacket) {
+                    AtomicGetPacket atomicGetPacket = (AtomicGetPacket) packet;
+                    server.getEntry(atomicGetPacket.getKey()).serialize(out);
+                    out.flush();
+                    break;
+                } else {
+                    System.out.println("Entry type invalid");
+                    break;
+                }
+            }
         } finally {
             this.socket.close();
         }

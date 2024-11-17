@@ -2,6 +2,9 @@ package client;
 
 import java.io.*;
 import java.net.Socket;
+
+import entries.AtomicGetPacket;
+import entries.Packet;
 import entries.SingleEntry;
 
 public class Client {
@@ -23,9 +26,13 @@ public class Client {
     // diferentes tipos de mensagens, mais propriamente, diferentes headers.
     public void put(String key, byte[] value) throws IOException {
         DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
+
         SingleEntry singleEntry = new SingleEntry(key, value);
-        singleEntry.serialize(out);
+        Packet packet = new Packet(1, singleEntry);
+        System.out.println(singleEntry.toString());
+        packet.serialize(out);
         out.flush();
+        System.out.println("CHEGOU AQUI!");
         // out.close(); ??
     }
 
@@ -44,7 +51,10 @@ public class Client {
         DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
         DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()));
 
-        out.writeUTF(key);
+        AtomicGetPacket atomicGetPacket = new AtomicGetPacket(key);
+        Packet packet = new Packet(2, atomicGetPacket);
+        System.out.println(atomicGetPacket.toString());
+        packet.serialize(out);
         out.flush();
         //out.close(); ??
 
