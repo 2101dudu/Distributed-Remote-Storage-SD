@@ -12,7 +12,7 @@ public class Server {
 
     public Server() {
         this.entries = new HashMap<>();
-    } // ADDED CONSTRUCTOR BECAUSE IN JAVA IT IS REQUIRED
+    }
 
     public void update(SingleEntry entry) {
         lock.lock();

@@ -20,7 +20,7 @@ public class ClientMain {
             while (flag) {
                 System.out.println("\nMenu:");
                 System.out.println("1. Write in the server map");
-                System.out.println("2. Request informationfrom the server map");
+                System.out.println("2. Request information from the server map");
                 System.out.println("3. Exit");
                 System.out.print("Choose a option: ");
 
@@ -57,10 +57,12 @@ public class ClientMain {
 
                     case "3":
                         System.out.println("Exiting...");
+                        client.closeConnection();
                         flag = false;
+                        break;
 
                     default:
-                        System.out.println("Opção inválida. Tente novamente.");
+                        System.out.println("Invalid option. Try again.");
                         break;
                 }
             }

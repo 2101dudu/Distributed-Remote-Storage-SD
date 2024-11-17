@@ -1,5 +1,7 @@
 package entries;
 
+import com.sun.jdi.connect.spi.ClosedConnectionException;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -28,11 +30,15 @@ public class Packet {
             case 1:
                 SingleEntry entry = (SingleEntry) this.packet;
                 entry.serialize(out);
-                break; // ADDED BREAK STATEMENT BECAUSE IN JAVA IT IS REQUIRED
+                break;
             case 2:
                 AtomicGetPacket entryGet = (AtomicGetPacket) this.packet;
                 entryGet.serialize(out);
-                break; // ADDED BREAK STATEMENT BECAUSE IN JAVA IT IS REQUIRED
+                break;
+            case 3:
+                CloseConnectionPacket entryClose = (CloseConnectionPacket) this.packet;
+                entryClose.serialize(out);
+                break;
         }
     }
 
@@ -40,15 +46,13 @@ public class Packet {
         int type = in.readInt();
         switch (type) {
             case 1:
-                System.out.println("SingleEntry deserialized");
-                SingleEntry entry = SingleEntry.deserialize(in);
-                return entry;
+                return SingleEntry.deserialize(in);
             case 2:
-                System.out.println("AtomicGetEntry deserialized");
-                AtomicGetPacket entryGet = AtomicGetPacket.deserialize(in);
-                return entryGet;
+                return AtomicGetPacket.deserialize(in);
+            case 3:
+                return CloseConnectionPacket.deserialize(in);
             default:
-                return null;
+                throw new IOException("Unknown packet type");
         }
     }
 }

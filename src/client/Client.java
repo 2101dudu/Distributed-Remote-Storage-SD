@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.Socket;
 
 import entries.AtomicGetPacket;
+import entries.CloseConnectionPacket;
 import entries.Packet;
 import entries.SingleEntry;
 
@@ -32,7 +33,6 @@ public class Client {
         System.out.println(singleEntry.toString());
         packet.serialize(out);
         out.flush();
-        System.out.println("CHEGOU AQUI!");
         // out.close(); ??
     }
 
@@ -53,7 +53,6 @@ public class Client {
 
         AtomicGetPacket atomicGetPacket = new AtomicGetPacket(key);
         Packet packet = new Packet(2, atomicGetPacket);
-        System.out.println(atomicGetPacket.toString());
         packet.serialize(out);
         out.flush();
         //out.close(); ??
@@ -62,6 +61,14 @@ public class Client {
         //in.close(); ??
 
         return singleEntry.getData();
+    }
+
+    public void closeConnection() throws IOException {
+        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
+        CloseConnectionPacket closeConnectionPacket = new CloseConnectionPacket();
+        Packet packet = new Packet(3, closeConnectionPacket);
+        packet.serialize(out);
+        out.flush();
     }
 }
 
