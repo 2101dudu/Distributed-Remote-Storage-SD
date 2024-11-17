@@ -28,9 +28,11 @@ public class Packet {
             case 1:
                 SingleEntry entry = (SingleEntry) this.packet;
                 entry.serialize(out);
+                break; // ADDED BREAK STATEMENT BECAUSE IN JAVA IT IS REQUIRED
             case 2:
                 AtomicGetPacket entryGet = (AtomicGetPacket) this.packet;
                 entryGet.serialize(out);
+                break; // ADDED BREAK STATEMENT BECAUSE IN JAVA IT IS REQUIRED
         }
     }
 

@@ -17,8 +17,9 @@ public class ServerHandler implements Runnable {
     private Socket socket;
     private Server server;
 
-    public ServerHandler(Socket socket) {
+    public ServerHandler(Socket socket, Server server) {
         this.socket = socket;
+        this.server = server; // INITIALIZED SERVER INSTANCE BECAUSE IN JAVA IT IS REQUIRED 
     }
 
     @Override

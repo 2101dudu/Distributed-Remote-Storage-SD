@@ -10,6 +10,10 @@ public class Server {
     private HashMap<String, byte[]> entries;
     private Lock lock = new ReentrantLock();
 
+    public Server() {
+        this.entries = new HashMap<>();
+    } // ADDED CONSTRUCTOR BECAUSE IN JAVA IT IS REQUIRED
+
     public void update(SingleEntry entry) {
         lock.lock();
         try {
