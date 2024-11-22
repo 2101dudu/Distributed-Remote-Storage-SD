@@ -34,19 +34,24 @@ public class ServerHandler implements Runnable {
             while (flag) {
                 try {
                     Object packet = PacketWrapper.deserialize(in);
-                    if (packet instanceof PutPacket) {
-                        PutPacket putPacket = (PutPacket) packet;
-                        System.out.println("Entry received from client: " + putPacket.toString());
-                        server.update(putPacket);
-                    } else if (packet instanceof GetPacket) {
-                        GetPacket getPacket = (GetPacket) packet;
-                        server.getEntry(getPacket.getKey()).serialize(out);
-                        out.flush();
-                    } else if (packet instanceof CloseConnectionPacket) {
-                        System.out.println("Closing connection as requested by client.");
-                        flag = false;
-                    } else {
-                        System.out.println("Entry type invalid");
+                    switch (packet.getClass().getSimpleName()) {
+                        case "PutPacket":
+                            PutPacket putPacket = (PutPacket) packet;
+                            System.out.println("Entry received from client: " + putPacket.toString());
+                            server.update(putPacket);
+                            break;
+                        case "GetPacket":
+                            GetPacket getPacket = (GetPacket) packet;
+                            server.getEntry(getPacket.getKey()).serialize(out);
+                            out.flush();
+                            break;
+                        case "CloseConnectionPacket":
+                            System.out.println("Closing connection as requested by client.");
+                            flag = false;
+                            break;
+                        default:
+                            System.out.println("Entry type invalid");
+                            break;
                     }
                 } catch (EOFException e) {
                     flag = false;
