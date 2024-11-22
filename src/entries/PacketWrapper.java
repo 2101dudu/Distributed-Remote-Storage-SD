@@ -1,17 +1,15 @@
 package entries;
 
-import com.sun.jdi.connect.spi.ClosedConnectionException;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class Packet {
+public class PacketWrapper {
 
     private int type;
     private Object packet;
 
-    public Packet(int type, Object packet) {
+    public PacketWrapper(int type, Object packet) {
         this.type = type;
         this.packet = packet;
     }
@@ -28,11 +26,11 @@ public class Packet {
         out.writeInt(this.type);
         switch (this.type) {
             case 1:
-                SingleEntry entry = (SingleEntry) this.packet;
+                PutPacket entry = (PutPacket) this.packet;
                 entry.serialize(out);
                 break;
             case 2:
-                AtomicGetPacket entryGet = (AtomicGetPacket) this.packet;
+                GetPacket entryGet = (GetPacket) this.packet;
                 entryGet.serialize(out);
                 break;
             case 3:
@@ -46,9 +44,9 @@ public class Packet {
         int type = in.readInt();
         switch (type) {
             case 1:
-                return SingleEntry.deserialize(in);
+                return PutPacket.deserialize(in);
             case 2:
-                return AtomicGetPacket.deserialize(in);
+                return GetPacket.deserialize(in);
             case 3:
                 return CloseConnectionPacket.deserialize(in);
             default:

@@ -3,10 +3,10 @@ package client;
 import java.io.*;
 import java.net.Socket;
 
-import entries.AtomicGetPacket;
+import entries.GetPacket;
 import entries.CloseConnectionPacket;
-import entries.Packet;
-import entries.SingleEntry;
+import entries.PacketWrapper;
+import entries.PutPacket;
 
 public class Client {
     private Socket socket;
@@ -28,10 +28,10 @@ public class Client {
     public void put(String key, byte[] value) throws IOException {
         DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
 
-        SingleEntry singleEntry = new SingleEntry(key, value);
-        Packet packet = new Packet(1, singleEntry);
-        System.out.println(singleEntry.toString());
-        packet.serialize(out);
+        PutPacket putPacket = new PutPacket(key, value);
+        PacketWrapper packetWrapper = new PacketWrapper(1, putPacket);
+        System.out.println(putPacket.toString());
+        packetWrapper.serialize(out);
         out.flush();
         // out.close(); ??
     }
@@ -51,23 +51,23 @@ public class Client {
         DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
         DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()));
 
-        AtomicGetPacket atomicGetPacket = new AtomicGetPacket(key);
-        Packet packet = new Packet(2, atomicGetPacket);
-        packet.serialize(out);
+        GetPacket getPacket = new GetPacket(key);
+        PacketWrapper packetWrapper = new PacketWrapper(2, getPacket);
+        packetWrapper.serialize(out);
         out.flush();
         //out.close(); ??
 
-        SingleEntry singleEntry = SingleEntry.deserialize(in);
+        PutPacket putPacket = PutPacket.deserialize(in);
         //in.close(); ??
 
-        return singleEntry.getData();
+        return putPacket.getData();
     }
 
     public void closeConnection() throws IOException {
         DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
         CloseConnectionPacket closeConnectionPacket = new CloseConnectionPacket();
-        Packet packet = new Packet(3, closeConnectionPacket);
-        packet.serialize(out);
+        PacketWrapper packetWrapper = new PacketWrapper(3, closeConnectionPacket);
+        packetWrapper.serialize(out);
         out.flush();
     }
 }

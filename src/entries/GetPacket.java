@@ -4,10 +4,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class AtomicGetPacket {
+public class GetPacket {
     private String key;
 
-    public AtomicGetPacket(String key) {
+    public GetPacket(String key) {
         this.key = key;
     }
 
@@ -23,7 +23,7 @@ public class AtomicGetPacket {
         out.writeUTF(this.key);
     }
 
-    public static AtomicGetPacket deserialize(DataInputStream in) throws IOException {
-        return new AtomicGetPacket(in.readUTF());
+    public static GetPacket deserialize(DataInputStream in) throws IOException {
+        return new GetPacket(in.readUTF());
     }
 }

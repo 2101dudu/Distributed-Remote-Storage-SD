@@ -1,6 +1,6 @@
 package server;
 
-import entries.SingleEntry;
+import entries.PutPacket;
 
 import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
@@ -14,7 +14,7 @@ public class Server {
         this.entries = new HashMap<>();
     }
 
-    public void update(SingleEntry entry) {
+    public void update(PutPacket entry) {
         lock.lock();
         try {
             this.entries.put(entry.getKey(), entry.getData());
@@ -23,8 +23,8 @@ public class Server {
         }
     }
 
-    public SingleEntry getEntry(String key) {
-        SingleEntry entry = new SingleEntry();
+    public PutPacket getEntry(String key) {
+        PutPacket entry = new PutPacket();
         lock.lock();
         try {
             entry.setKey(key);

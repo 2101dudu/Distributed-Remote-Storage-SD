@@ -2,13 +2,11 @@ package server;
 
 import java.io.*;
 import java.net.Socket;
-import java.security.KeyStore.Entry;
-import java.util.Arrays;
 
-import entries.AtomicGetPacket;
+import entries.GetPacket;
 import entries.CloseConnectionPacket;
-import entries.Packet;
-import entries.SingleEntry;
+import entries.PacketWrapper;
+import entries.PutPacket;
 
 public class ServerHandler implements Runnable {
     private Socket socket;
@@ -35,14 +33,14 @@ public class ServerHandler implements Runnable {
             boolean flag = true;
             while (flag) {
                 try {
-                    Object packet = Packet.deserialize(in);
-                    if (packet instanceof SingleEntry) {
-                        SingleEntry singleEntry = (SingleEntry) packet;
-                        System.out.println("Entry received from client: " + singleEntry.toString());
-                        server.update(singleEntry);
-                    } else if (packet instanceof AtomicGetPacket) {
-                        AtomicGetPacket atomicGetPacket = (AtomicGetPacket) packet;
-                        server.getEntry(atomicGetPacket.getKey()).serialize(out);
+                    Object packet = PacketWrapper.deserialize(in);
+                    if (packet instanceof PutPacket) {
+                        PutPacket putPacket = (PutPacket) packet;
+                        System.out.println("Entry received from client: " + putPacket.toString());
+                        server.update(putPacket);
+                    } else if (packet instanceof GetPacket) {
+                        GetPacket getPacket = (GetPacket) packet;
+                        server.getEntry(getPacket.getKey()).serialize(out);
                         out.flush();
                     } else if (packet instanceof CloseConnectionPacket) {
                         System.out.println("Closing connection as requested by client.");
