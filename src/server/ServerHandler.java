@@ -1,21 +1,19 @@
 package server;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
-import java.security.KeyStore.Entry;
-import java.util.Arrays;
 
-import entries.SingleEntry;
+import entries.GetPacket;
+import entries.PacketWrapper;
+import entries.PutPacket;
 
 public class ServerHandler implements Runnable {
     private Socket socket;
+    private Server server;
 
-    public ServerHandler(Socket socket) {
+    public ServerHandler(Socket socket, Server server) {
         this.socket = socket;
+        this.server = server;
     }
 
     @Override
@@ -31,26 +29,30 @@ public class ServerHandler implements Runnable {
         try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
             DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()))) {
 
-
-            // client put method debug ---------------------------------------------------------------------
-            SingleEntry singleEntry = SingleEntry.deserialize(in);
-            System.out.println("Entry received from client: " + singleEntry.toString());
-            // ---------------------------------------------------------------------------------------------
-
-
-            // client get method debug ---------------------------------------------------------------------
-            String key = in.readUTF();
-            // in.close(); ??
-            // **[SIMULATION]** get data corresponding to key from map ***************************
-            byte[] dataToSend = Arrays.copyOf(singleEntry.getData(),singleEntry.getData().length);
-            // ***********************************************************************************
-            SingleEntry entryToSend = new SingleEntry(key, dataToSend);
-            entryToSend.serialize(out);
-            out.flush();
-            // out.close(); ??
-            // ---------------------------------------------------------------------------------------------
-        
-
+            boolean flag = true;
+            while (flag) {
+                try {
+                    Object packet = PacketWrapper.deserialize(in);
+                    switch (packet.getClass().getSimpleName()) {
+                        case "PutPacket":
+                            PutPacket putPacket = (PutPacket) packet;
+                            System.out.println("Entry received from client: " + putPacket.toString());
+                            server.update(putPacket);
+                            break;
+                        case "GetPacket":
+                            GetPacket getPacket = (GetPacket) packet;
+                            server.getEntry(getPacket.getKey()).serialize(out);
+                            out.flush();
+                            break;
+                        default:
+                            System.out.println("Entry type invalid");
+                            break;
+                    }
+                } catch (EOFException e) {
+                    System.out.println("Closing connection");
+                    flag = false;
+                }
+            }
         } finally {
             this.socket.close();
         }

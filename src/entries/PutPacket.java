@@ -5,19 +5,20 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class SingleEntry {
+public class PutPacket {
     
     private String key;
     private byte[] data;
 
+    public PutPacket() {
+        this.key = null;
+        this.data = null;
+    }
 
-
-    public SingleEntry(String key, byte[] data) {
+    public PutPacket(String key, byte[] data) {
         this.key = key;
         this.data = Arrays.copyOf(data, data.length); // shallow copy
     }
-
-
 
     public String getKey() {
         return this.key;
@@ -36,7 +37,6 @@ public class SingleEntry {
     }
 
 
-
     public void serialize(DataOutputStream out) throws IOException {
         out.writeUTF(this.key);
         int dataLength = this.data.length;
@@ -44,14 +44,12 @@ public class SingleEntry {
         out.write(this.data, 0, dataLength);
     }
 
-    public static SingleEntry deserialize(DataInputStream in) throws IOException {
+    public static PutPacket deserialize(DataInputStream in) throws IOException {
         String key = in.readUTF();
         int dataLength = in.readInt();
         byte[] data = in.readNBytes(dataLength);
-
-        return new SingleEntry(key, data);
+        return new PutPacket(key, data);
     }
-
 
 
     public String toString() {
