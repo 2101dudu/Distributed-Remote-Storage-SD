@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.Socket;
 
 import entries.GetPacket;
-import entries.CloseConnectionPacket;
 import entries.PacketWrapper;
 import entries.PutPacket;
 
@@ -64,11 +63,7 @@ public class Client {
     }
 
     public void closeConnection() throws IOException {
-        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
-        CloseConnectionPacket closeConnectionPacket = new CloseConnectionPacket();
-        PacketWrapper packetWrapper = new PacketWrapper(3, closeConnectionPacket);
-        packetWrapper.serialize(out);
-        out.flush();
+        this.socket.close();
     }
 }
 

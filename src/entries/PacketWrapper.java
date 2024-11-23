@@ -5,7 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class PacketWrapper {
-
     private int type;
     private Object packet;
 
@@ -33,10 +32,6 @@ public class PacketWrapper {
                 GetPacket entryGet = (GetPacket) this.packet;
                 entryGet.serialize(out);
                 break;
-            case 3:
-                CloseConnectionPacket entryClose = (CloseConnectionPacket) this.packet;
-                entryClose.serialize(out);
-                break;
         }
     }
 
@@ -47,8 +42,6 @@ public class PacketWrapper {
                 return PutPacket.deserialize(in);
             case 2:
                 return GetPacket.deserialize(in);
-            case 3:
-                return CloseConnectionPacket.deserialize(in);
             default:
                 throw new IOException("Unknown packet type");
         }

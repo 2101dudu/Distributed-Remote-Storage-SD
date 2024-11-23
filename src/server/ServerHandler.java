@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.Socket;
 
 import entries.GetPacket;
-import entries.CloseConnectionPacket;
 import entries.PacketWrapper;
 import entries.PutPacket;
 
@@ -28,7 +27,7 @@ public class ServerHandler implements Runnable {
 
     private void handleConnection() throws IOException {
         try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
-             DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()))) {
+            DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()))) {
 
             boolean flag = true;
             while (flag) {
@@ -45,15 +44,12 @@ public class ServerHandler implements Runnable {
                             server.getEntry(getPacket.getKey()).serialize(out);
                             out.flush();
                             break;
-                        case "CloseConnectionPacket":
-                            System.out.println("Closing connection as requested by client.");
-                            flag = false;
-                            break;
                         default:
                             System.out.println("Entry type invalid");
                             break;
                     }
                 } catch (EOFException e) {
+                    System.out.println("Closing connection");
                     flag = false;
                 }
             }
