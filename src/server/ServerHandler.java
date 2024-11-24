@@ -6,6 +6,8 @@ import java.net.Socket;
 import entries.GetPacket;
 import entries.PacketWrapper;
 import entries.PutPacket;
+import entries.AckPacket;
+import entries.AuthPacket;
 
 public class ServerHandler implements Runnable {
     private Socket socket;
@@ -32,16 +34,31 @@ public class ServerHandler implements Runnable {
             boolean flag = true;
             while (flag) {
                 try {
-                    Object packet = PacketWrapper.deserialize(in);
-                    switch (packet.getClass().getSimpleName()) {
-                        case "PutPacket":
+                    PacketWrapper packetWrapper = PacketWrapper.deserialize(in);
+                    Object packet = packetWrapper.getPacket();
+                    switch (packetWrapper.getType()) {
+                        case 1: // Put
                             PutPacket putPacket = (PutPacket) packet;
                             System.out.println("Entry received from client: " + putPacket.toString());
                             server.update(putPacket);
                             break;
-                        case "GetPacket":
+                        case 2: // Get
                             GetPacket getPacket = (GetPacket) packet;
                             server.getEntry(getPacket.getKey()).serialize(out);
+                            out.flush();
+                            break;
+                        case 3: // Register
+                            AuthPacket regPacket = (AuthPacket) packet;
+                            System.out.println("Reg packet received");
+                            AckPacket ackPacket = new AckPacket(server.register(regPacket.getUsername(), regPacket.getPassword()));
+                            ackPacket.serialize(out);
+                            out.flush();
+                            break;
+                        case 4: // Login
+                            AuthPacket loginPacket = (AuthPacket) packet;
+                            System.out.println("Login packet received");
+                            ackPacket = new AckPacket(server.authenticate(loginPacket.getUsername(), loginPacket.getPassword()));
+                            ackPacket.serialize(out);
                             out.flush();
                             break;
                         default:

@@ -25,25 +25,36 @@ public class PacketWrapper {
         out.writeInt(this.type);
         switch (this.type) {
             case 1:
-                PutPacket entry = (PutPacket) this.packet;
-                entry.serialize(out);
+                PutPacket entryPut = (PutPacket) this.packet;
+                entryPut.serialize(out);
                 break;
             case 2:
                 GetPacket entryGet = (GetPacket) this.packet;
                 entryGet.serialize(out);
                 break;
+            case 3, 4:
+                AuthPacket entryAuth = (AuthPacket) this.packet;
+                entryAuth.serialize(out);
+                break;
         }
     }
 
-    public static Object deserialize(DataInputStream in) throws IOException {
+    public static PacketWrapper deserialize(DataInputStream in) throws IOException {
         int type = in.readInt();
+        Object packet;
         switch (type) {
             case 1:
-                return PutPacket.deserialize(in);
+                packet = PutPacket.deserialize(in);
+                break;
             case 2:
-                return GetPacket.deserialize(in);
+                packet = GetPacket.deserialize(in);
+                break;
+            case 3, 4:
+                packet = AuthPacket.deserialize(in);
+                break;
             default:
                 throw new IOException("Unknown packet type");
         }
+        return new PacketWrapper(type, packet);
     }
 }
