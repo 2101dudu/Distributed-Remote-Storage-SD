@@ -3,19 +3,15 @@ package client;
 import java.io.*;
 import java.net.Socket;
 
-import entries.GetPacket;
-import entries.PacketWrapper;
-import entries.PutPacket;
-import entries.AckPacket;
-import entries.AuthPacket;
+import entries.*;
+import connection.ConnectionManager;
 
 public class Client {
-    private Socket socket;
-    private BufferedReader reader;
+    private ConnectionManager conn;
+    private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-    public Client(Socket socket) {
-        this.socket = socket;
-        this.reader = new BufferedReader(new InputStreamReader(System.in));
+    public Client(Socket socket) throws IOException {
+       this.conn = new ConnectionManager(socket);
     }
 
 
@@ -29,14 +25,12 @@ public class Client {
     // [ATENÇÃO] A implementação do método put() não está a ter em conta
     // diferentes tipos de mensagens, mais propriamente, diferentes headers.
     public void put(String key, byte[] value) throws IOException {
-        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
-
         PutPacket putPacket = new PutPacket(key, value);
         PacketWrapper packetWrapper = new PacketWrapper(1, putPacket);
-        System.out.println(putPacket.toString());
-        packetWrapper.serialize(out);
-        out.flush();
-        // out.close(); ??
+
+        System.out.println(putPacket);
+
+        conn.send(packetWrapper);
     }
 
 
@@ -51,55 +45,29 @@ public class Client {
     // [ATENÇÃO] A implementação do método get() não está a ter em conta
     // diferentes tipos de mensagens, mais propriamente, diferentes headers.
     public byte[] get(String key) throws IOException {
-        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
-        DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()));
-
         GetPacket getPacket = new GetPacket(key);
         PacketWrapper packetWrapper = new PacketWrapper(2, getPacket);
-        packetWrapper.serialize(out);
-        out.flush();
-        //out.close(); ??
 
-        PutPacket putPacket = PutPacket.deserialize(in);
-        //in.close(); ??
+        conn.send(packetWrapper);
 
+        PacketWrapper p = conn.receive();
+        PutPacket putPacket = (PutPacket) p.getPacket();
         return putPacket.getData();
     }
 
-    private boolean register(String username, String password) throws IOException {
-        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
-        DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()));
+    private boolean authenticate(String username, String password, int authenticationType) throws IOException {
+        AuthPacket auth = new AuthPacket(username, password);
+        PacketWrapper packetWrapper = new PacketWrapper(authenticationType, auth);
 
-        AuthPacket regPacket = new AuthPacket(username, password);
-        PacketWrapper packetWrapper = new PacketWrapper(3, regPacket);
-        packetWrapper.serialize(out);
-        out.flush();
-        // out.close(); ??
+        conn.send(packetWrapper);
 
-        AckPacket ackPacketResponse = AckPacket.deserialize(in);
-        //in.close(); ??
-
-        return ackPacketResponse.getAck();
-    }
-
-    private boolean authenticate(String username, String password) throws IOException {
-        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
-        DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()));
-
-        AuthPacket loginPacket = new AuthPacket(username, password);
-        PacketWrapper packetWrapper = new PacketWrapper(4, loginPacket);
-        packetWrapper.serialize(out);
-        out.flush();
-        // out.close(); ??
-
-        AckPacket ackPacketResponse = AckPacket.deserialize(in);
-        //in.close(); ??
-
-        return ackPacketResponse.getAck();
+        PacketWrapper p = conn.receive();
+        AckPacket ackPacket = (AckPacket) p.getPacket();
+        return ackPacket.getAck();
     }
 
     public void closeConnection() throws IOException {
-        this.socket.close();
+        conn.close();
     }
     
     public void start() throws IOException {
@@ -127,7 +95,7 @@ public class Client {
                     String password = this.reader.readLine();
 
                     System.out.println("Creating account...");
-                    boolean accountCreated = this.register(username, password);
+                    boolean accountCreated = this.authenticate(username, password, 3);
 
                     if (accountCreated) {
                         System.out.println("Account created successfully.");
@@ -145,7 +113,7 @@ public class Client {
                     password = this.reader.readLine();
 
                     System.out.println("Logging in...");
-                    boolean authenticated = this.authenticate(username, password);
+                    boolean authenticated = this.authenticate(username, password, 4);
 
                     // if client was able to log in, show main menu
                     if (authenticated) {

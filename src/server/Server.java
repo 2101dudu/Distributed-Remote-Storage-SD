@@ -1,14 +1,10 @@
 package server;
 
 import entries.PutPacket;
-import entries.AckPacket;
-import entries.AuthPacket;
 
 import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.io.DataOutputStream;
-import java.io.IOException;
 
 public class Server {
     private HashMap<String, byte[]> entries;

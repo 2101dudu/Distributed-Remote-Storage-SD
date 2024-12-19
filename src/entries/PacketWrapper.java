@@ -33,8 +33,12 @@ public class PacketWrapper {
                 entryGet.serialize(out);
                 break;
             case 3, 4:
-                AuthPacket entryAuth = (AuthPacket) this.packet;
-                entryAuth.serialize(out);
+                AuthPacket auth = (AuthPacket) this.packet;
+                auth.serialize(out);
+                break;
+            case 5:
+                AckPacket ack = (AckPacket) this.packet;
+                ack.serialize(out);
                 break;
         }
     }
@@ -51,6 +55,9 @@ public class PacketWrapper {
                 break;
             case 3, 4:
                 packet = AuthPacket.deserialize(in);
+                break;
+            case 5:
+                packet = AckPacket.deserialize(in);
                 break;
             default:
                 throw new IOException("Unknown packet type");
