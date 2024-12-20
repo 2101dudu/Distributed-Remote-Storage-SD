@@ -37,7 +37,7 @@ public class ServerHandler implements Runnable {
                         case "PutPacket":
                             PutPacket putPacket = (PutPacket) packet;
                             System.out.println("Entry received from client: " + putPacket.toString());
-                            server.update(putPacket);
+                            server.update(putPacket.getKey(), putPacket.getData());
                             break;
                         case "GetPacket":
                             GetPacket getPacket = (GetPacket) packet;
