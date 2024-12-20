@@ -40,6 +40,14 @@ public class PacketWrapper {
                 AckPacket ack = (AckPacket) this.packet;
                 ack.serialize(out);
                 break;
+            case 6:
+                MultiPutPacket multiPut = (MultiPutPacket) this.packet;
+                multiPut.serialize(out);
+                break;
+            case 7:
+                MultiGetPacket multiGet = (MultiGetPacket) this.packet;
+                multiGet.serialize(out);
+                break;
         }
     }
 
@@ -58,6 +66,12 @@ public class PacketWrapper {
                 break;
             case 5:
                 packet = AckPacket.deserialize(in);
+                break;
+            case 6:
+                packet = MultiPutPacket.deserialize(in);
+                break;
+            case 7:
+                packet = MultiGetPacket.deserialize(in);
                 break;
             default:
                 throw new IOException("Unknown packet type");

@@ -26,8 +26,6 @@ public class Client {
         PutPacket putPacket = new PutPacket(key, value);
         PacketWrapper packetWrapper = new PacketWrapper(1, putPacket);
 
-        System.out.println(putPacket);
-
         conn.send(packetWrapper);
     }
 
@@ -39,7 +37,7 @@ public class Client {
     // atomicamente.
     public void multiPut(Map<String, byte[]> pairs) throws IOException {
         MultiPutPacket multiPutPacket = new MultiPutPacket(pairs);
-        PacketWrapper packetWrapper = new PacketWrapper(3, multiPutPacket);
+        PacketWrapper packetWrapper = new PacketWrapper(6, multiPutPacket);
 
         conn.send(packetWrapper);
     }
@@ -69,7 +67,7 @@ public class Client {
     // respetivo.
     public Map<String, byte[]> multiGet(Set<String> keys) throws IOException {
         MultiGetPacket multiGetPacket = new MultiGetPacket(keys);
-        PacketWrapper packetWrapper = new PacketWrapper(4, multiGetPacket);
+        PacketWrapper packetWrapper = new PacketWrapper(7, multiGetPacket);
 
         conn.send(packetWrapper);
 
@@ -183,7 +181,6 @@ public class Client {
 
                     byte[] value = data.getBytes();
 
-                    System.out.println("Asking server to store key: " + key + " and data: " + data);
                     this.put(key, value);
                     break;
 
@@ -191,7 +188,6 @@ public class Client {
                     System.out.print("Enter key to fetch data: ");
                     String fetchKey = this.reader.readLine();
 
-                    System.out.println("Asking server for data corresponding to key: " + fetchKey);
                     byte[] dataFromServer = this.get(fetchKey);
 
                     if (dataFromServer != null && dataFromServer.length > 0) {
@@ -215,12 +211,11 @@ public class Client {
                         System.out.print("Enter data: ");
                         String multiPutdata = this.reader.readLine();
 
-                        byte[] multiPutvalue = data.getBytes();
+                        byte[] multiPutvalue = multiPutdata.getBytes();
 
                         pairs.put(multiPutkey, multiPutvalue);
                     }
 
-                    System.out.println("Asking server to store multiple entries.");
                     this.multiPut(pairs);
                     break;
 

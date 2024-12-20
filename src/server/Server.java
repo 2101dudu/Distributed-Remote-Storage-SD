@@ -26,7 +26,7 @@ public class Server {
         }
     }
 
-    public void multiUpdate(HashMap<String, byte[]> pairs) {
+    public void multiUpdate(Map<String, byte[]> pairs) {
         lock.lock();
         try {
             this.entries.putAll(pairs);
