@@ -44,6 +44,20 @@ public class ServerHandler implements Runnable {
                             server.getEntry(getPacket.getKey()).serialize(out);
                             out.flush();
                             break;
+                        case 5: // MultiPut
+                            MultiPutPacket receivedMultiPutPacket = (MultiPutPacket) packetData;
+    
+                            server.multiUpdate(receivedMultiPutPacket.getPairs());
+                            break;
+                        case 6: // MultiGet
+                            MultiGetPacket receivedMultiGetPacket = (MultiGetPacket) packetData;
+    
+                            MultiPutPacket multiPutPacket = server.mutliGetEntry(receivedMultiGetPacket.getKeys());
+                            PacketWrapper multiPutPacketWrapper = new PacketWrapper(6, multiPutPacket);
+
+                            conn.send(multiPutPacketWrapper);
+                            break;
+
                         default:
                             System.out.println("Entry type invalid");
                             break;
