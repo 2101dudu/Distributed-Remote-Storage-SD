@@ -16,7 +16,7 @@ public class ConnectionManager {
     private final Lock writeLock = readWriteLock.writeLock();
 
     private final DataInputStream in;
-    private final DataOutputStream out;
+    private final DataOutputStream out; 
 
     public ConnectionManager(Socket socket) throws IOException {
         this.socket = socket;

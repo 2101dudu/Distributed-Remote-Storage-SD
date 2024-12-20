@@ -2,6 +2,7 @@ package client;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.*;
 
 import entries.*;
 import connection.ConnectionManager;
@@ -21,18 +22,25 @@ public class Client {
     //
     // Se a chave não existir, é criada uma nova entrada no servidor, com o par 
     // chave-valor enviado. Caso contrário, a entrada deverá ser atualizada com o novo valor.
-
-    // [ATENÇÃO] A implementação do método put() não está a ter em conta
-    // diferentes tipos de mensagens, mais propriamente, diferentes headers.
     public void put(String key, byte[] value) throws IOException {
         PutPacket putPacket = new PutPacket(key, value);
         PacketWrapper packetWrapper = new PacketWrapper(1, putPacket);
 
-        System.out.println(putPacket);
-
         conn.send(packetWrapper);
     }
 
+    // Operação de escrita composta:
+    //
+    // void multiPut(Map<String, byte[]> pairs).
+    //
+    // Todos os pares chave-valor deverão ser atualizados / inseridos
+    // atomicamente.
+    public void multiPut(Map<String, byte[]> pairs) throws IOException {
+        MultiPutPacket multiPutPacket = new MultiPutPacket(pairs);
+        PacketWrapper packetWrapper = new PacketWrapper(6, multiPutPacket);
+
+        conn.send(packetWrapper);
+    }
 
     // Operação de leitura:
     //
@@ -40,10 +48,6 @@ public class Client {
     //
     // Para uma chave key, deverá devolver ao cliente o respetivo valor,
     // ou null caso a chave não exista.
-
-
-    // [ATENÇÃO] A implementação do método get() não está a ter em conta
-    // diferentes tipos de mensagens, mais propriamente, diferentes headers.
     public byte[] get(String key) throws IOException {
         GetPacket getPacket = new GetPacket(key);
         PacketWrapper packetWrapper = new PacketWrapper(2, getPacket);
@@ -55,6 +59,23 @@ public class Client {
         return putPacket.getData();
     }
 
+    // Operação de leitura composta:
+    //
+    // Map<String, byte[]> multiGet(Set<String> keys).
+    //
+    // Dado um conjunto de chaves, devolve o conjunto de pares chave-valor 
+    // respetivo.
+    public Map<String, byte[]> multiGet(Set<String> keys) throws IOException {
+        MultiGetPacket multiGetPacket = new MultiGetPacket(keys);
+        PacketWrapper packetWrapper = new PacketWrapper(7, multiGetPacket);
+
+        conn.send(packetWrapper);
+
+        PacketWrapper p = conn.receive();
+        MultiPutPacket multiPutPacket = (MultiPutPacket) p.getPacket();
+        return multiPutPacket.getPairs();
+    }
+  
     private boolean authenticate(String username, String password, int authenticationType) throws IOException {
         AuthPacket auth = new AuthPacket(username, password);
         PacketWrapper packetWrapper = new PacketWrapper(authenticationType, auth);
@@ -82,7 +103,7 @@ public class Client {
             System.out.println("1. Create account");
             System.out.println("2. Login");
             System.out.println("3. Exit");
-            System.out.print("Choose a option: ");
+            System.out.print("Choose an option: ");
 
             String choice = this.reader.readLine();
 
@@ -141,10 +162,12 @@ public class Client {
 
         while (!exited) {
             System.out.println("\nMenu:");
-            System.out.println("1. Write in the server map");
-            System.out.println("2. Request information from the server map");
-            System.out.println("3. Exit");
-            System.out.print("Choose a option: ");
+            System.out.println("1. Write in the server's map");
+            System.out.println("2. Request information from the server's map");
+            System.out.println("3. Write multiple information in the server's map");
+            System.out.println("4. Request multiple information from the server's map");
+            System.out.println("5. Exit");
+            System.out.print("Choose an option: ");
 
             String choice = this.reader.readLine();
 
@@ -158,7 +181,6 @@ public class Client {
 
                     byte[] value = data.getBytes();
 
-                    System.out.println("Asking server to store key: " + key + " and data: " + data);
                     this.put(key, value);
                     break;
 
@@ -166,7 +188,6 @@ public class Client {
                     System.out.print("Enter key to fetch data: ");
                     String fetchKey = this.reader.readLine();
 
-                    System.out.println("Asking server for data corresponding to key: " + fetchKey);
                     byte[] dataFromServer = this.get(fetchKey);
 
                     if (dataFromServer != null && dataFromServer.length > 0) {
@@ -178,6 +199,49 @@ public class Client {
                     break;
 
                 case "3":
+                    HashMap<String, byte[]> pairs = new HashMap<>();
+
+                    System.out.print("How many entries do you want to put: ");
+                    int numEntries = Integer.parseInt(this.reader.readLine());
+                    
+                    for (int i = 0; i < numEntries; i++) {
+                        System.out.print("Enter key: ");
+                        String multiPutkey = this.reader.readLine();
+
+                        System.out.print("Enter data: ");
+                        String multiPutdata = this.reader.readLine();
+
+                        byte[] multiPutvalue = multiPutdata.getBytes();
+
+                        pairs.put(multiPutkey, multiPutvalue);
+                    }
+
+                    this.multiPut(pairs);
+                    break;
+
+                case "4":
+                    System.out.print("How many keys do you want to retrieve information from: ");
+                    int numKeys = Integer.parseInt(this.reader.readLine());
+
+                    Set<String> keys = new HashSet<>();
+                    for (int i = 0; i < numKeys; i++) {
+                        System.out.print("Enter the key you want to fetch data from: ");
+                        keys.add(this.reader.readLine());
+                    }
+                    
+                    Map<String, byte[]> multiDataFromServer = this.multiGet(keys);
+
+                    for (Map.Entry<String, byte[]> entry : multiDataFromServer.entrySet()) {
+                        if (entry.getValue() != null && entry.getValue().length > 0) {
+                            System.out.print("Data received: ");
+                            System.out.println(new String(entry.getValue()));
+                        } else {
+                            System.out.println("No data found for the given key.");
+                        }
+                    }
+                    break;
+
+                case "5":
                     System.out.println("Exiting...");
                     exited = true;
                     break;
@@ -189,4 +253,5 @@ public class Client {
         }
     }
 }
+
 

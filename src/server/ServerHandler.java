@@ -37,8 +37,7 @@ public class ServerHandler implements Runnable {
                     case 1: // Put
                         PutPacket receivedPutPacket = (PutPacket) packetData;
 
-                        System.out.println("Entry received from client: " + receivedPutPacket.toString());
-                        server.update(receivedPutPacket);
+                        server.update(receivedPutPacket.getKey(), receivedPutPacket.getData());
                         break;
 
                     case 2: // Get
@@ -62,13 +61,30 @@ public class ServerHandler implements Runnable {
 
                     case 4: // Login
                         AuthPacket loginPacket = (AuthPacket) packetData;
-                        System.out.println("Login packet received");
 
                         boolean loggedIn = server.authenticate(loginPacket.getUsername(), loginPacket.getPassword());
                         AckPacket loginAckPacket = new AckPacket(loggedIn);
                         PacketWrapper loginPacketWrapper = new PacketWrapper(5, loginAckPacket);
                         
                         conn.send(loginPacketWrapper);
+                        break;
+
+                    case 5: // Ack
+                        break;
+                    
+                    case 6: // MultiPut
+                        MultiPutPacket receivedMultiPutPacket = (MultiPutPacket) packetData;
+    
+                        server.multiUpdate(receivedMultiPutPacket.getPairs());
+                        break;
+                    
+                    case 7: // MultiGet
+                        MultiGetPacket receivedMultiGetPacket = (MultiGetPacket) packetData;
+    
+                        MultiPutPacket multiPutPacket = server.mutliGetEntry(receivedMultiGetPacket.getKeys());
+                        PacketWrapper multiPutPacketWrapper = new PacketWrapper(6, multiPutPacket);
+
+                        conn.send(multiPutPacketWrapper);
                         break;
 
                     default:
