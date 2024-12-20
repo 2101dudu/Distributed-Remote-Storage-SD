@@ -3,16 +3,15 @@ package server;
 import java.io.*;
 import java.net.Socket;
 
-import entries.GetPacket;
-import entries.PacketWrapper;
-import entries.PutPacket;
+import entries.*;
+import connection.ConnectionManager;
 
 public class ServerHandler implements Runnable {
-    private Socket socket;
+    private ConnectionManager conn;
     private Server server;
 
-    public ServerHandler(Socket socket, Server server) {
-        this.socket = socket;
+    public ServerHandler(Socket socket, Server server) throws IOException {
+        this.conn = new ConnectionManager(socket);
         this.server = server;
     }
 
@@ -26,35 +25,60 @@ public class ServerHandler implements Runnable {
     }
 
     private void handleConnection() throws IOException {
-        try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
-            DataInputStream in = new DataInputStream(new BufferedInputStream(this.socket.getInputStream()))) {
+        boolean error = false;
+        while (!error) {
+            try {
+                PacketWrapper packetWrapper = conn.receive();
 
-            boolean flag = true;
-            while (flag) {
-                try {
-                    Object packet = PacketWrapper.deserialize(in);
-                    switch (packet.getClass().getSimpleName()) {
-                        case "PutPacket":
-                            PutPacket putPacket = (PutPacket) packet;
-                            System.out.println("Entry received from client: " + putPacket.toString());
-                            server.update(putPacket);
-                            break;
-                        case "GetPacket":
-                            GetPacket getPacket = (GetPacket) packet;
-                            server.getEntry(getPacket.getKey()).serialize(out);
-                            out.flush();
-                            break;
-                        default:
-                            System.out.println("Entry type invalid");
-                            break;
-                    }
-                } catch (EOFException e) {
-                    System.out.println("Closing connection");
-                    flag = false;
+                int packetType = packetWrapper.getType();
+                Object packetData = packetWrapper.getPacket();
+
+                switch (packetType) {
+                    case 1: // Put
+                        PutPacket receivedPutPacket = (PutPacket) packetData;
+
+                        System.out.println("Entry received from client: " + receivedPutPacket.toString());
+                        server.update(receivedPutPacket);
+                        break;
+
+                    case 2: // Get
+                        GetPacket receivedGetPacket = (GetPacket) packetData;
+
+                        PutPacket putPacket = server.getEntry(receivedGetPacket.getKey());
+                        PacketWrapper getPacketWrapper = new PacketWrapper(1, putPacket);
+
+                        conn.send(getPacketWrapper);
+                        break;
+
+                    case 3: // Register
+                        AuthPacket regPacket = (AuthPacket) packetData;
+
+                        boolean registered = server.register(regPacket.getUsername(), regPacket.getPassword());
+                        AckPacket ackPacket = new AckPacket(registered);
+                        PacketWrapper registerPacketWrapper = new PacketWrapper(5, ackPacket);
+                        
+                        conn.send(registerPacketWrapper);
+                        break;
+
+                    case 4: // Login
+                        AuthPacket loginPacket = (AuthPacket) packetData;
+                        System.out.println("Login packet received");
+
+                        boolean loggedIn = server.authenticate(loginPacket.getUsername(), loginPacket.getPassword());
+                        AckPacket loginAckPacket = new AckPacket(loggedIn);
+                        PacketWrapper loginPacketWrapper = new PacketWrapper(5, loginAckPacket);
+                        
+                        conn.send(loginPacketWrapper);
+                        break;
+
+                    default:
+                        System.out.println("Entry type invalid");
+                        break;
                 }
+            } catch (IOException e ) {
+                System.out.println("Closing connection");
+                error = true;
             }
-        } finally {
-            this.socket.close();
         }
     }
 }
