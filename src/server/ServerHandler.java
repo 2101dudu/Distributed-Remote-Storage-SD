@@ -35,10 +35,10 @@ public class ServerHandler implements Runnable {
 
                 switch (packetType) {
                     case 1: // Put
-                        PutPacket receviedPutPacket = (PutPacket) packetData;
+                        PutPacket receivedPutPacket = (PutPacket) packetData;
 
-                        System.out.println("Entry received from client: " + receviedPutPacket.toString());
-                        server.update(receviedPutPacket);
+                        System.out.println("Entry received from client: " + receivedPutPacket.toString());
+                        server.update(receivedPutPacket);
                         break;
 
                     case 2: // Get

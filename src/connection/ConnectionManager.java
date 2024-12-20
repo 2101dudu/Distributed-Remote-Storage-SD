@@ -3,20 +3,20 @@ package connection;
 import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import entries.PacketWrapper;
 
 public class ConnectionManager {
     private final Socket socket;
 
-    private final Lock readLock = new ReentrantLock();
-    private final Lock writeLock = new ReentrantLock();
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final Lock readLock = readWriteLock.readLock();
+    private final Lock writeLock = readWriteLock.writeLock();
 
     private final DataInputStream in;
     private final DataOutputStream out;
-
-
 
     public ConnectionManager(Socket socket) throws IOException {
         this.socket = socket;
