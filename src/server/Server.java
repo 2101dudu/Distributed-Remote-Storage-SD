@@ -9,10 +9,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Server {
     private HashMap<String, byte[]> entries;
+    private HashMap<String, String> clients;
     private Lock lock = new ReentrantLock();
 
     public Server() {
         this.entries = new HashMap<>();
+        this.clients = new HashMap<>();
     }
 
     public void update(String key, byte[] data) {
@@ -54,6 +56,29 @@ public class Server {
                 pairs.put(key, this.entries.get(key));
             
             return new MultiPutPacket(pairs);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public boolean register(String username, String password) {
+        lock.lock();
+        try {
+            if (this.clients.containsKey(username)) {
+                return false;
+            }
+            this.clients.put(username, password);
+            return true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public boolean authenticate(String username, String password) {
+        lock.lock();
+        try {
+            String existingPassword = this.clients.get(username);
+            return existingPassword != null && existingPassword.equals(password);
         } finally {
             lock.unlock();
         }

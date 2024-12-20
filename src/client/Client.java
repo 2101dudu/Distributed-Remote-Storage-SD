@@ -77,7 +77,7 @@ public class Client {
         MultiPutPacket multiPutPacket = (MultiPutPacket) p.getPacket();
         return multiPutPacket.getPairs();
     }
-
+  
     private boolean authenticate(String username, String password, int authenticationType) throws IOException {
         AuthPacket auth = new AuthPacket(username, password);
         PacketWrapper packetWrapper = new PacketWrapper(authenticationType, auth);
@@ -105,7 +105,7 @@ public class Client {
             System.out.println("1. Create account");
             System.out.println("2. Login");
             System.out.println("3. Exit");
-            System.out.print("Choose a option: ");
+            System.out.print("Choose an option: ");
 
             String choice = this.reader.readLine();
 
@@ -169,7 +169,7 @@ public class Client {
             System.out.println("3. Write multiple information in the server's map");
             System.out.println("4. Request multiple information from the server's map");
             System.out.println("5. Exit");
-            System.out.print("Choose a option: ");
+            System.out.print("Choose an option: ");
 
             String choice = this.reader.readLine();
 
