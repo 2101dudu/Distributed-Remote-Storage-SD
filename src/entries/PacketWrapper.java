@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import utils.PacketType;
+
 public class PacketWrapper {
     private int type;
     private Object packet;
@@ -24,27 +26,27 @@ public class PacketWrapper {
     public void serialize(DataOutputStream out) throws IOException {
         out.writeInt(this.type);
         switch (this.type) {
-            case 1:
+            case PacketType.PUT:
                 PutPacket entryPut = (PutPacket) this.packet;
                 entryPut.serialize(out);
                 break;
-            case 2:
+            case PacketType.GET:
                 GetPacket entryGet = (GetPacket) this.packet;
                 entryGet.serialize(out);
                 break;
-            case 3, 4:
+            case PacketType.REGISTER, PacketType.LOGIN:
                 AuthPacket auth = (AuthPacket) this.packet;
                 auth.serialize(out);
                 break;
-            case 5:
+            case PacketType.ACK:
                 AckPacket ack = (AckPacket) this.packet;
                 ack.serialize(out);
                 break;
-            case 6:
+            case PacketType.MULTI_PUT:
                 MultiPutPacket multiPut = (MultiPutPacket) this.packet;
                 multiPut.serialize(out);
                 break;
-            case 7:
+            case PacketType.MULTI_GET:
                 MultiGetPacket multiGet = (MultiGetPacket) this.packet;
                 multiGet.serialize(out);
                 break;
@@ -55,22 +57,22 @@ public class PacketWrapper {
         int type = in.readInt();
         Object packet;
         switch (type) {
-            case 1:
+            case PacketType.PUT:
                 packet = PutPacket.deserialize(in);
                 break;
-            case 2:
+            case PacketType.GET:
                 packet = GetPacket.deserialize(in);
                 break;
-            case 3, 4:
+            case PacketType.REGISTER, PacketType.LOGIN:
                 packet = AuthPacket.deserialize(in);
                 break;
-            case 5:
+            case PacketType.ACK:
                 packet = AckPacket.deserialize(in);
                 break;
-            case 6:
+            case PacketType.MULTI_PUT:
                 packet = MultiPutPacket.deserialize(in);
                 break;
-            case 7:
+            case PacketType.MULTI_GET:
                 packet = MultiGetPacket.deserialize(in);
                 break;
             default:

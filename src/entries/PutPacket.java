@@ -3,7 +3,6 @@ package entries;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 
 public class PutPacket {
     
@@ -17,7 +16,7 @@ public class PutPacket {
 
     public PutPacket(String key, byte[] data) {
         this.key = key;
-        this.data = Arrays.copyOf(data, data.length); // shallow copy
+        this.data = data;
     }
 
     public String getKey() {
@@ -29,24 +28,31 @@ public class PutPacket {
     }
 
     public byte[] getData() {
-        return Arrays.copyOf(this.data, this.data.length);
+        return data;
     }
 
     public void setData(byte[] data) {
-        this.data = Arrays.copyOf(data, data.length); // shallow copy
+        this.data = data;
     }
 
 
     public void serialize(DataOutputStream out) throws IOException {
         out.writeUTF(this.key);
-        int dataLength = this.data.length;
-        out.writeInt(dataLength);
-        out.write(this.data, 0, dataLength);
+        if (this.data != null) {
+            int dataLength = this.data.length;
+            out.writeInt(dataLength);
+            out.write(this.data, 0, dataLength);
+        } else {
+            out.writeInt(0);
+        }
     }
 
     public static PutPacket deserialize(DataInputStream in) throws IOException {
         String key = in.readUTF();
         int dataLength = in.readInt();
+        if (dataLength == 0) {
+            return new PutPacket(key, null);
+        }
         byte[] data = in.readNBytes(dataLength);
         return new PutPacket(key, data);
     }

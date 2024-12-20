@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
 
+import utils.PacketType;
+
 public class ClientHandler {
     private Client client;
     private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -38,7 +40,7 @@ public class ClientHandler {
                     String password = this.reader.readLine();
 
                     System.out.println("Creating account...");
-                    boolean accountCreated = this.client.authenticate(username, password, 3);
+                    boolean accountCreated = this.client.authenticate(username, password, PacketType.REGISTER);
 
                     if (accountCreated) {
                         System.out.println("Account created successfully.");
@@ -56,7 +58,7 @@ public class ClientHandler {
                     password = this.reader.readLine();
 
                     System.out.println("Logging in...");
-                    boolean authenticated = this.client.authenticate(username, password, 4);
+                    boolean authenticated = this.client.authenticate(username, password, PacketType.LOGIN);
 
                     // if client was able to log in, show main menu
                     if (authenticated) {

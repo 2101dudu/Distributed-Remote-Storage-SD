@@ -6,6 +6,7 @@ import java.util.*;
 
 import entries.*;
 import connection.ConnectionManager;
+import utils.PacketType;
 
 public class Client {
     private ConnectionManager conn;
@@ -23,7 +24,7 @@ public class Client {
     // chave-valor enviado. Caso contrário, a entrada deverá ser atualizada com o novo valor.
     public void put(String key, byte[] value) throws IOException {
         PutPacket putPacket = new PutPacket(key, value);
-        PacketWrapper packetWrapper = new PacketWrapper(1, putPacket);
+        PacketWrapper packetWrapper = new PacketWrapper(PacketType.PUT, putPacket);
 
         conn.send(packetWrapper);
     }
@@ -36,7 +37,7 @@ public class Client {
     // atomicamente.
     public void multiPut(Map<String, byte[]> pairs) throws IOException {
         MultiPutPacket multiPutPacket = new MultiPutPacket(pairs);
-        PacketWrapper packetWrapper = new PacketWrapper(6, multiPutPacket);
+        PacketWrapper packetWrapper = new PacketWrapper(PacketType.MULTI_PUT, multiPutPacket);
 
         conn.send(packetWrapper);
     }
@@ -49,7 +50,7 @@ public class Client {
     // ou null caso a chave não exista.
     public byte[] get(String key) throws IOException {
         GetPacket getPacket = new GetPacket(key);
-        PacketWrapper packetWrapper = new PacketWrapper(2, getPacket);
+        PacketWrapper packetWrapper = new PacketWrapper(PacketType.GET, getPacket);
 
         conn.send(packetWrapper);
 
@@ -66,7 +67,7 @@ public class Client {
     // respetivo.
     public Map<String, byte[]> multiGet(Set<String> keys) throws IOException {
         MultiGetPacket multiGetPacket = new MultiGetPacket(keys);
-        PacketWrapper packetWrapper = new PacketWrapper(7, multiGetPacket);
+        PacketWrapper packetWrapper = new PacketWrapper(PacketType.MULTI_GET, multiGetPacket);
 
         conn.send(packetWrapper);
 
