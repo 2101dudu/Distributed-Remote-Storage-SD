@@ -10,69 +10,161 @@ import java.util.concurrent.locks.Condition;
 
 public class Server {
     private HashMap<String, byte[]> entries;
+    private Lock entriesLock = new ReentrantLock();
+
     private HashMap<String, String> clients;
+    private Lock clientsLock = new ReentrantLock();
 
-    private int sesionsCount;
+    // each condition is associated with the entries map's lock
+    private HashMap<String, Condition> getWhenConditions;
+    private Lock whenConditionsLock = new ReentrantLock();
+
     private int S;
+    private int sessionsCount;
+    private Lock sessionsLock = new ReentrantLock();
+    private Condition full = sessionsLock.newCondition();
 
-    private Lock lock = new ReentrantLock();
-    private Condition full = lock.newCondition();
 
     public Server(int s) {
         this.entries = new HashMap<>();
         this.clients = new HashMap<>();
+        this.getWhenConditions = new HashMap<>();
 
-        this.sesionsCount = 0;
+        this.sessionsCount = 0;
         this.S = s;
     }
 
     public void update(String key, byte[] data) {
-        lock.lock();
+        entriesLock.lock();
         try {
             this.entries.put(key, data);
         } finally {
-            lock.unlock();
+            entriesLock.unlock();
+        }
+
+        String compositeKey = key + Arrays.hashCode(data);
+
+        Condition condition;
+        whenConditionsLock.lock();
+        try {
+            condition = this.getWhenConditions.get(compositeKey);
+        } finally {
+            whenConditionsLock.unlock();
+        }
+
+        entriesLock.lock();
+        try {
+            if (condition != null) condition.signalAll();
+        } finally {
+            entriesLock.unlock();
         }
     }
 
     public void multiUpdate(Map<String, byte[]> pairs) {
-        lock.lock();
+        entriesLock.lock();
         try {
             this.entries.putAll(pairs);
         } finally {
-            lock.unlock();
+            entriesLock.unlock();
+        }
+
+        Set<String> compositeKey = new HashSet<>();
+        for (Map.Entry<String, byte[]> pair : pairs.entrySet()) {
+            String key = pair.getKey();
+            byte[] data = pair.getValue();
+            compositeKey.add(key + Arrays.hashCode(data));
+        }
+
+        Set<Condition> conditions = new HashSet<>();
+        whenConditionsLock.lock();
+        try {
+            for (String hashedKey : compositeKey) {
+                Condition condition = this.getWhenConditions.get(hashedKey);
+                if (condition != null) conditions.add(condition);
+            }
+        } finally {
+            whenConditionsLock.unlock();
+        }
+
+        entriesLock.lock();
+        try {
+            for (Condition condition : conditions)
+                condition.signalAll();
+        } finally {
+            entriesLock.unlock();
         }
     }
 
     public PutPacket getEntry(String key) {
         PutPacket entry = new PutPacket();
-        lock.lock();
+        entriesLock.lock();
         try {
-            entry.setKey(key);
             byte[] data = this.entries.get(key);
+
+            entry.setKey(key);
             entry.setData(data);
             
             return entry;
         } finally {
-            lock.unlock();
+            entriesLock.unlock();
         }
     }
 
     public MultiPutPacket mutliGetEntry(Set<String> keys) {
         HashMap<String, byte[]> pairs = new HashMap<>();
-        lock.lock();
+        entriesLock.lock();
         try {
             for (String key : keys) 
                 pairs.put(key, this.entries.get(key));
             
             return new MultiPutPacket(pairs);
         } finally {
-            lock.unlock();
+            entriesLock.unlock();
+        }
+    }
+
+
+
+    public PutPacket getEntryWhen(String key, String keyCond, byte[] dataCond) throws InterruptedException {
+        PutPacket entry = new PutPacket();
+
+        String compositeKey = keyCond + Arrays.hashCode(dataCond);
+
+        Condition condition;
+
+        whenConditionsLock.lock();
+        try {
+            condition = this.getWhenConditions.get(compositeKey);
+            if (condition == null) {
+                condition = entriesLock.newCondition();
+                this.getWhenConditions.put(compositeKey, condition);
+            }
+        } finally {
+            whenConditionsLock.unlock();
+        }
+
+
+        entriesLock.lock();
+        try {
+            byte[] actualData = this.entries.get(keyCond);
+            while (actualData == null || !Arrays.equals(dataCond, actualData)) {
+                condition.await();
+                actualData = this.entries.get(keyCond);
+            }
+
+            byte[] data = this.entries.get(key);
+
+            entry.setKey(key);
+            entry.setData(data);
+
+            return entry;
+        } finally {
+            entriesLock.unlock();
         }
     }
 
     public boolean register(String username, String password) {
-        lock.lock();
+        clientsLock.lock();
         try {
             if (this.clients.containsKey(username)) {
                 return false;
@@ -80,36 +172,43 @@ public class Server {
             this.clients.put(username, password);
             return true;
         } finally {
-            lock.unlock();
+            clientsLock.unlock();
         }
     }
 
     public boolean authenticate(String username, String password) throws InterruptedException {
-        lock.lock();
+        String existingPassword;
+        clientsLock.lock();
         try {
-            String existingPassword = this.clients.get(username);
-            if (existingPassword == null || !existingPassword.equals(password)) {
-                return false;
-            } 
+            existingPassword = this.clients.get(username);
+        } finally {
+            clientsLock.unlock();
+        }
 
-            while (this.sesionsCount >= this.S) {
+        if (existingPassword == null || !existingPassword.equals(password)) {
+            return false;
+        } 
+
+        sessionsLock.lock();
+        try {
+            while (this.sessionsCount >= this.S) {
                 full.await();
             }
-            this.sesionsCount++;
+            this.sessionsCount++;
 
             return true;
         } finally {
-            lock.unlock();
+            sessionsLock.unlock();
         }
     }
 
     public void decreaseSessionsCount() {
-        lock.lock();
+        sessionsLock.lock();
         try {
-            this.sesionsCount--;
+            this.sessionsCount--;
             full.signal();
         } finally {
-            lock.unlock();
+            sessionsLock.unlock();
         }
     }
 }

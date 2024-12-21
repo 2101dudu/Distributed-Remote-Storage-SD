@@ -28,7 +28,7 @@ public class PutPacket {
     }
 
     public byte[] getData() {
-        return data;
+        return this.data;
     }
 
     public void setData(byte[] data) {

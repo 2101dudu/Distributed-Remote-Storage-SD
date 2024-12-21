@@ -50,6 +50,10 @@ public class PacketWrapper {
                 MultiGetPacket multiGet = (MultiGetPacket) this.packet;
                 multiGet.serialize(out);
                 break;
+            case PacketType.GET_WHEN:
+                GetWhenPacket getWhen = (GetWhenPacket) this.packet;
+                getWhen.serialize(out);
+                break;
         }
     }
 
@@ -74,6 +78,9 @@ public class PacketWrapper {
                 break;
             case PacketType.MULTI_GET:
                 packet = MultiGetPacket.deserialize(in);
+                break;
+            case PacketType.GET_WHEN:
+                packet = GetWhenPacket.deserialize(in);
                 break;
             default:
                 throw new IOException("Unknown packet type");

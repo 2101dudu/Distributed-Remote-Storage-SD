@@ -75,7 +75,25 @@ public class Client {
         MultiPutPacket multiPutPacket = (MultiPutPacket) p.getPacket();
         return multiPutPacket.getPairs();
     }
-  
+
+    // Leitura condicional:
+    //
+    // byte[] getWhen(String key, String keyCond, byte[] valueCond).
+    //
+    // Deverá ser devolvido o valor da chave key quando o valor relativo à
+    // chave keyCond seja igual a valueCond, devendo a operação ficar bloqueada
+    // até tal acontecer.
+    public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws IOException {
+        GetWhenPacket getWhenPacket = new GetWhenPacket(key, keyCond, valueCond);
+        PacketWrapper packetWrapper = new PacketWrapper(PacketType.GET_WHEN, getWhenPacket);
+
+        conn.send(packetWrapper);
+
+        PacketWrapper p = conn.receive();
+        PutPacket putPacket = (PutPacket) p.getPacket();
+        return putPacket.getData();
+    }
+
     // Operação de autenticação — registo e login.
     public boolean authenticate(String username, String password, int authenticationType) throws IOException {
         AuthPacket auth = new AuthPacket(username, password);
