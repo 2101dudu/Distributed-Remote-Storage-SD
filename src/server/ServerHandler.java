@@ -26,8 +26,8 @@ public class ServerHandler implements Runnable {
     }
 
     private void handleConnection() throws IOException {
-        boolean error = false;
-        while (!error) {
+        boolean left = false;
+        while (!left) {
             try {
                 PacketWrapper packetWrapper = conn.receive();
 
@@ -94,8 +94,14 @@ public class ServerHandler implements Runnable {
                 }
             } catch (IOException e ) {
                 System.out.println("Closing connection");
-                error = true;
+
+                server.clientHasLeft();
+                left = true;
+            } catch ( InterruptedException e) {
+                e.printStackTrace();
+                left = true;
             }
+
         }
     }
 }

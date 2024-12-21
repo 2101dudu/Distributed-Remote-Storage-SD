@@ -6,7 +6,14 @@ import java.net.Socket;
 
 public class ServerMain {
     public static void main(String[] args) {
-        Server server = new Server(); // Create server instance
+        if (args.length < 1) {
+            System.out.println("Usage: java ServerMain <MAX_CONCURRENT_USERS>");
+            return;
+        }
+
+        int S = Integer.parseInt(args[0]);
+
+        Server server = new Server(S); // Create server instance
         try (ServerSocket ss = new ServerSocket(8080)) {
             System.out.println("Server starting...");
             

@@ -6,15 +6,24 @@ import java.util.*;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Condition;
 
 public class Server {
     private HashMap<String, byte[]> entries;
     private HashMap<String, String> clients;
-    private Lock lock = new ReentrantLock();
 
-    public Server() {
+    private int clientCount;
+    private int S;
+
+    private Lock lock = new ReentrantLock();
+    private Condition full = lock.newCondition();
+
+    public Server(int s) {
         this.entries = new HashMap<>();
         this.clients = new HashMap<>();
+
+        this.clientCount = 0;
+        this.S = s;
     }
 
     public void update(String key, byte[] data) {
@@ -75,11 +84,30 @@ public class Server {
         }
     }
 
-    public boolean authenticate(String username, String password) {
+    public boolean authenticate(String username, String password) throws InterruptedException {
         lock.lock();
         try {
             String existingPassword = this.clients.get(username);
-            return existingPassword != null && existingPassword.equals(password);
+            if (existingPassword == null || !existingPassword.equals(password)) {
+                return false;
+            } 
+
+            while (this.clientCount >= this.S) {
+                full.await();
+            }
+            this.clientCount++;
+
+            return true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void clientHasLeft() {
+        lock.lock();
+        try {
+            this.clientCount--;
+            full.signal();
         } finally {
             lock.unlock();
         }
