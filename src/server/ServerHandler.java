@@ -11,9 +11,13 @@ public class ServerHandler implements Runnable {
     private ConnectionManager conn;
     private Server server;
 
+    private boolean clientHasLoggedIn;
+
     public ServerHandler(Socket socket, Server server) throws IOException {
         this.conn = new ConnectionManager(socket);
         this.server = server;
+
+        this.clientHasLoggedIn = false;
     }
 
     @Override
@@ -26,8 +30,8 @@ public class ServerHandler implements Runnable {
     }
 
     private void handleConnection() throws IOException {
-        boolean error = false;
-        while (!error) {
+        boolean left = false; // flag to check if the client has left
+        while (!left) {
             try {
                 PacketWrapper packetWrapper = conn.receive();
 
@@ -66,6 +70,8 @@ public class ServerHandler implements Runnable {
                         boolean loggedIn = server.authenticate(loginPacket.getUsername(), loginPacket.getPassword());
                         AckPacket loginAckPacket = new AckPacket(loggedIn);
                         PacketWrapper loginPacketWrapper = new PacketWrapper(5, loginAckPacket);
+
+                        this.clientHasLoggedIn = loggedIn;
                         
                         conn.send(loginPacketWrapper);
                         break;
@@ -94,8 +100,17 @@ public class ServerHandler implements Runnable {
                 }
             } catch (IOException e ) {
                 System.out.println("Closing connection");
-                error = true;
+
+                // if the client did not log in, no session was created, thus, no need to decrease the session count
+                if (clientHasLoggedIn) 
+                    server.decreaseSessionsCount();
+
+                left = true; // client has left
+            } catch ( InterruptedException e) {
+                e.printStackTrace();
+                left = true; // client has left
             }
+
         }
     }
 }
