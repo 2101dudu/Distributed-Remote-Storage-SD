@@ -40,7 +40,8 @@ public class Server {
         lock.lock();
         try {
             entry.setKey(key);
-            entry.setData(this.entries.get(key));
+            byte[] data = this.entries.get(key);
+            entry.setData(data);
             
             return entry;
         } finally {

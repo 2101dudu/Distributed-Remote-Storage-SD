@@ -5,6 +5,7 @@ import java.net.Socket;
 
 import entries.*;
 import connection.ConnectionManager;
+import utils.PacketType;
 
 public class ServerHandler implements Runnable {
     private ConnectionManager conn;
@@ -34,13 +35,13 @@ public class ServerHandler implements Runnable {
                 Object packetData = packetWrapper.getPacket();
 
                 switch (packetType) {
-                    case 1: // Put
+                    case PacketType.PUT:
                         PutPacket receivedPutPacket = (PutPacket) packetData;
 
                         server.update(receivedPutPacket.getKey(), receivedPutPacket.getData());
                         break;
 
-                    case 2: // Get
+                    case PacketType.GET:
                         GetPacket receivedGetPacket = (GetPacket) packetData;
 
                         PutPacket putPacket = server.getEntry(receivedGetPacket.getKey());
@@ -49,7 +50,7 @@ public class ServerHandler implements Runnable {
                         conn.send(getPacketWrapper);
                         break;
 
-                    case 3: // Register
+                    case PacketType.REGISTER:
                         AuthPacket regPacket = (AuthPacket) packetData;
 
                         boolean registered = server.register(regPacket.getUsername(), regPacket.getPassword());
@@ -59,7 +60,7 @@ public class ServerHandler implements Runnable {
                         conn.send(registerPacketWrapper);
                         break;
 
-                    case 4: // Login
+                    case PacketType.LOGIN:
                         AuthPacket loginPacket = (AuthPacket) packetData;
 
                         boolean loggedIn = server.authenticate(loginPacket.getUsername(), loginPacket.getPassword());
@@ -69,16 +70,16 @@ public class ServerHandler implements Runnable {
                         conn.send(loginPacketWrapper);
                         break;
 
-                    case 5: // Ack
+                    case PacketType.ACK:
                         break;
                     
-                    case 6: // MultiPut
+                    case PacketType.MULTI_PUT:
                         MultiPutPacket receivedMultiPutPacket = (MultiPutPacket) packetData;
     
                         server.multiUpdate(receivedMultiPutPacket.getPairs());
                         break;
                     
-                    case 7: // MultiGet
+                    case PacketType.MULTI_GET:
                         MultiGetPacket receivedMultiGetPacket = (MultiGetPacket) packetData;
     
                         MultiPutPacket multiPutPacket = server.mutliGetEntry(receivedMultiGetPacket.getKeys());
