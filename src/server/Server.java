@@ -12,7 +12,7 @@ public class Server {
     private HashMap<String, byte[]> entries;
     private HashMap<String, String> clients;
 
-    private int clientCount;
+    private int sesionsCount;
     private int S;
 
     private Lock lock = new ReentrantLock();
@@ -22,7 +22,7 @@ public class Server {
         this.entries = new HashMap<>();
         this.clients = new HashMap<>();
 
-        this.clientCount = 0;
+        this.sesionsCount = 0;
         this.S = s;
     }
 
@@ -92,10 +92,10 @@ public class Server {
                 return false;
             } 
 
-            while (this.clientCount >= this.S) {
+            while (this.sesionsCount >= this.S) {
                 full.await();
             }
-            this.clientCount++;
+            this.sesionsCount++;
 
             return true;
         } finally {
@@ -103,10 +103,10 @@ public class Server {
         }
     }
 
-    public void clientHasLeft() {
+    public void decreaseSessionsCount() {
         lock.lock();
         try {
-            this.clientCount--;
+            this.sesionsCount--;
             full.signal();
         } finally {
             lock.unlock();
