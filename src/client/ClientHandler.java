@@ -86,11 +86,12 @@ public class ClientHandler {
 
         while (!exited) {
             System.out.println("\nMenu:");
-            System.out.println("1. Write in the server's map");
-            System.out.println("2. Request information from the server's map");
-            System.out.println("3. Write multiple information in the server's map");
-            System.out.println("4. Request multiple information from the server's map");
-            System.out.println("5. Exit");
+            System.out.println("1. Write in the server's map (put)");
+            System.out.println("2. Request information from the server's map (get)");
+            System.out.println("3. Write multiple information in the server's map (multiPut)");
+            System.out.println("4. Request multiple information from the server's map (multiGet)");
+            System.out.println("5. Request information from the setver's map when a condition is met (getWhen)");
+            System.out.println("6. Exit");
             System.out.print("Choose an option: ");
 
             String choice = this.reader.readLine();
@@ -166,6 +167,29 @@ public class ClientHandler {
                     break;
 
                 case "5":
+                    System.out.print("Enter key to fetch data from: ");
+                    String keyWhen = this.reader.readLine();
+
+                    System.out.print("Enter key condition: ");
+                    String keyCond = this.reader.readLine();
+
+                    System.out.print("Enter data condition: ");
+                    String dataCond = this.reader.readLine();
+
+                    byte[] dataCondBytes = dataCond.getBytes();
+
+                    byte[] dataWhen = this.client.getWhen(keyWhen, keyCond, dataCondBytes);
+
+                    if (dataWhen != null && dataWhen.length > 0) {
+                        System.out.print("Data received: ");
+                        System.out.println(new String(dataWhen));
+                    } else {
+                        System.out.println("No data found for the given key.");
+                    }
+                    break;
+
+
+                case "6":
                     System.out.println("Exiting...");
                     exited = true;
                     break;

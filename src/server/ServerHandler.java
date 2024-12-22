@@ -49,7 +49,7 @@ public class ServerHandler implements Runnable {
                         GetPacket receivedGetPacket = (GetPacket) packetData;
 
                         PutPacket putPacket = server.getEntry(receivedGetPacket.getKey());
-                        PacketWrapper getPacketWrapper = new PacketWrapper(1, putPacket);
+                        PacketWrapper getPacketWrapper = new PacketWrapper(PacketType.PUT, putPacket);
 
                         conn.send(getPacketWrapper);
                         break;
@@ -59,7 +59,7 @@ public class ServerHandler implements Runnable {
 
                         boolean registered = server.register(regPacket.getUsername(), regPacket.getPassword());
                         AckPacket ackPacket = new AckPacket(registered);
-                        PacketWrapper registerPacketWrapper = new PacketWrapper(5, ackPacket);
+                        PacketWrapper registerPacketWrapper = new PacketWrapper(PacketType.ACK, ackPacket);
                         
                         conn.send(registerPacketWrapper);
                         break;
@@ -69,7 +69,7 @@ public class ServerHandler implements Runnable {
 
                         boolean loggedIn = server.authenticate(loginPacket.getUsername(), loginPacket.getPassword());
                         AckPacket loginAckPacket = new AckPacket(loggedIn);
-                        PacketWrapper loginPacketWrapper = new PacketWrapper(5, loginAckPacket);
+                        PacketWrapper loginPacketWrapper = new PacketWrapper(PacketType.ACK, loginAckPacket);
 
                         this.clientHasLoggedIn = loggedIn;
                         
@@ -89,9 +89,18 @@ public class ServerHandler implements Runnable {
                         MultiGetPacket receivedMultiGetPacket = (MultiGetPacket) packetData;
     
                         MultiPutPacket multiPutPacket = server.mutliGetEntry(receivedMultiGetPacket.getKeys());
-                        PacketWrapper multiPutPacketWrapper = new PacketWrapper(6, multiPutPacket);
+                        PacketWrapper multiPutPacketWrapper = new PacketWrapper(PacketType.MULTI_PUT, multiPutPacket);
 
                         conn.send(multiPutPacketWrapper);
+                        break;
+
+                    case PacketType.GET_WHEN:
+                        GetWhenPacket receivedGetWhenPacket = (GetWhenPacket) packetData;
+
+                        PutPacket getWhenPutPacket = server.getEntryWhen(receivedGetWhenPacket.getKey(), receivedGetWhenPacket.getKeyCond(), receivedGetWhenPacket.getDataCond());
+                        PacketWrapper getWhenPacketWrapper = new PacketWrapper(PacketType.PUT, getWhenPutPacket);
+
+                        conn.send(getWhenPacketWrapper);
                         break;
 
                     default:
