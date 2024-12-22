@@ -7,6 +7,8 @@ import java.util.*;
 
 import utils.PacketType;
 
+import java.net.Socket;
+
 public class ClientHandler {
     private Client client;
     private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -27,6 +29,7 @@ public class ClientHandler {
             System.out.println("1. Create account");
             System.out.println("2. Login");
             System.out.println("3. Exit");
+            System.out.println("4. Shutdown server");
             System.out.print("Choose an option: ");
 
             String choice = this.reader.readLine();
@@ -72,6 +75,17 @@ public class ClientHandler {
                     System.out.println("Exiting...");
                     this.client.closeConnection();
                     exited = true;
+                    break;
+
+                case "4":
+                    System.out.println("Shutting down server...");
+                    this.client.shutdownServer();
+
+                    this.client.closeConnection();
+                    exited = true;
+
+                    Socket temp = new Socket("localhost", 8080);
+                    temp.close();
                     break;
 
                 default:

@@ -109,6 +109,11 @@ public class Client {
     public void closeConnection() throws IOException {
         conn.close();
     }
+
+    public void shutdownServer() throws IOException {
+        PacketWrapper packetWrapper = new PacketWrapper(PacketType.SHUTDOWN, null);
+        conn.send(packetWrapper);
+    }
 }
 
 

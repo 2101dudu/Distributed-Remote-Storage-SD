@@ -7,17 +7,19 @@ import entries.*;
 import connection.ConnectionManager;
 import utils.PacketType;
 
-public class ServerHandler implements Runnable {
-    private ConnectionManager conn;
-    private Server server;
+import exceptions.ShutdownException;
 
+public class ServerHandler implements Runnable {
     private boolean clientHasLoggedIn;
 
-    public ServerHandler(Socket socket, Server server) throws IOException {
-        this.conn = new ConnectionManager(socket);
-        this.server = server;
+    private Server server;
+    private ConnectionManager conn;
 
+    public ServerHandler(Socket socket, Server server) throws IOException {
         this.clientHasLoggedIn = false;
+        
+        this.server = server;
+        this.conn = new ConnectionManager(socket);
     }
 
     @Override
@@ -26,10 +28,12 @@ public class ServerHandler implements Runnable {
             handleConnection();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (ShutdownException e) {
+            server.shutdown(); // set the isRunning flag to false
         }
     }
 
-    private void handleConnection() throws IOException {
+    private void handleConnection() throws IOException, ShutdownException {
         boolean left = false; // flag to check if the client has left
         while (!left) {
             try {
@@ -102,6 +106,9 @@ public class ServerHandler implements Runnable {
 
                         conn.send(getWhenPacketWrapper);
                         break;
+
+                    case PacketType.SHUTDOWN:
+                        throw new ShutdownException();
 
                     default:
                         System.out.println("Entry type invalid");
