@@ -29,3 +29,6 @@ Users/
 .idea/
 
 *.iml
+
+# Results of benchmarking
+benchmark_results.csv
