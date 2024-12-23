@@ -29,3 +29,6 @@ Users/
 .idea/
 
 *.iml
+
+# Ignore log files
+log.txt
