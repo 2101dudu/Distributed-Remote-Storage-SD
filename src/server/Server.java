@@ -3,10 +3,11 @@ package server;
 import entries.*;
 
 import java.util.*;
-
+import java.io.*;
 import java.util.concurrent.locks.*;
 
-public class Server {
+
+public class Server implements Serializable {
     private HashMap<String, byte[]> entries;
     private final ReadWriteLock readWriteEntriesLock = new ReentrantReadWriteLock();
     private final Lock writeEntriesLock = readWriteEntriesLock.writeLock();
@@ -30,14 +31,31 @@ public class Server {
     private final Lock readSessionsLock = readWriteSessionsLock.readLock();
     private final Condition full = writeSessionsLock.newCondition();
 
+    private volatile boolean isRunning = true;
 
-    public Server(int s) {
+    public Server() {
         this.entries = new HashMap<>();
         this.clients = new HashMap<>();
         this.getWhenConditions = new HashMap<>();
 
         this.sessionsCount = 0;
-        this.S = s;
+        this.S = 0;
+    }
+
+    public void setS(int S) {
+        this.S = S;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
+    }
+
+    public void running() {
+        isRunning = true;
+    }
+
+    public void shutdown() {
+        isRunning = false;
     }
 
     public void update(String key, byte[] data) {
@@ -227,6 +245,23 @@ public class Server {
             full.signal();
         } finally {
             writeSessionsLock.unlock();
+        }
+    }
+
+    public void writeState(String filePath) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
+            oos.writeObject(this);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Server readState(String filePath) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
+            return (Server) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }

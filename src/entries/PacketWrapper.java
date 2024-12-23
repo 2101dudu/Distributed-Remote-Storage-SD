@@ -54,12 +54,16 @@ public class PacketWrapper {
                 GetWhenPacket getWhen = (GetWhenPacket) this.packet;
                 getWhen.serialize(out);
                 break;
+            case PacketType.SHUTDOWN:
+                break;
+            default:
+                break;
         }
     }
 
     public static PacketWrapper deserialize(DataInputStream in) throws IOException {
         int type = in.readInt();
-        Object packet;
+        Object packet = null;
         switch (type) {
             case PacketType.PUT:
                 packet = PutPacket.deserialize(in);
@@ -82,6 +86,9 @@ public class PacketWrapper {
             case PacketType.GET_WHEN:
                 packet = GetWhenPacket.deserialize(in);
                 break;
+            case PacketType.SHUTDOWN:
+                break;
+
             default:
                 throw new IOException("Unknown packet type");
         }
