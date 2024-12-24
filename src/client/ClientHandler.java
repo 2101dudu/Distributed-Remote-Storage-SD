@@ -333,7 +333,7 @@ public class ClientHandler {
         lock.lock();
         try {
             numberOfOperations--;
-            exitCondition.signal();
+            if (numberOfOperations == 0) exitCondition.signal();
         } finally {
             lock.unlock();
         }
