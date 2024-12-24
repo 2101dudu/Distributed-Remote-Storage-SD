@@ -32,3 +32,6 @@ Users/
 
 # Results of benchmarking
 benchmark_results.csv
+
+# Ignore log files
+log.txt
