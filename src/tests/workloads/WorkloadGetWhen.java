@@ -34,11 +34,10 @@ public class WorkloadGetWhen implements Workload {
         Thread putThread = new Thread(() -> {
             try (Socket socket = new Socket("localhost", 8080)) {
                 Client putClient = new Client(socket);
-                Thread.sleep(15); // Little delay to ensure getWhen doesn't execute after put
                 System.out.println("Executing put for condition key: " + condKey);
                 putClient.put(condKey, condValue);
                 putClient.closeConnection();
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         });

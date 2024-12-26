@@ -8,7 +8,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class CSVWriter {
-    private static final String CSV_FILE = "benchmark_results.csv";
+    private static final String CSV_FILE = "../out/benchmark_results.csv";
     private static final Lock lock = new ReentrantLock();
 
     public static void writeResult(String workload, int threads, int operations, long duration, double avgLatency, double throughput) {
@@ -19,10 +19,10 @@ public class CSVWriter {
 
             try (PrintWriter writer = new PrintWriter(new FileWriter(CSV_FILE, true))) {
                 if (isNewFile) {
-                    writer.println("Workload,Threads,Operations,Duration(ms),AvgLatency(ms),Throughput(ops/sec)");
+                    writer.println("Workload;Threads;Operations;Duration(ms);AvgLatency(ms);Throughput(ops/sec)");
                 }
 
-                writer.printf("%s,%d,%d,%d,%.2f,%.2f%n", workload, threads, operations, duration, avgLatency, throughput);
+                writer.printf("%s;%d;%d;%d;%.2f;%.2f%n", workload, threads, operations, duration, avgLatency, throughput);
             }
         } catch (IOException e) {
             e.printStackTrace();
