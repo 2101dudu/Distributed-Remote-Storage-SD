@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Condition;
+import java.net.Socket;
 
 import utils.PacketType;
 import utils.LogWriter;
@@ -82,9 +83,31 @@ public class ClientHandler {
                         }
 
                         this.client.shutdownServer();
-                        exited = true;
 
                         this.client.closeConnection();
+
+                        exited = true;
+
+                        /* 
+                           when the server is shutdown, the serverHandler's 
+                           thread that receives that information will interpret 
+                           it and change the server instance's boolean value of
+                           isRunning to true.
+                          
+                           if you go and check the serverMain class, you will see
+                           that the boolean is only checked after a new connection
+                           is accepted. this means that the only way for the 
+                           serverMain class to check if a shutdown was requested 
+                           is to "get out" of the "ss.accept()" line of code. the 
+                           only way to achieve this is to create a new connection
+                           that will be rendered useless by the serverMain class 
+                           as well as the clientHandler class.
+                          
+                           this is why we create a new socket connection to the server
+                        */ 
+                        Socket temp = new Socket("localhost", 8080);
+                        temp.close();
+
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     } finally {
