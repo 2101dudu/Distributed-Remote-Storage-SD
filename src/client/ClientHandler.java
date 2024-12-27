@@ -22,7 +22,6 @@ public class ClientHandler {
 
     private int numberOfOperations = 0;
 
-
     public ClientHandler(Client client) throws IOException {
         this.client = client;
     }
@@ -170,6 +169,7 @@ public class ClientHandler {
         }
     }
 
+    // Create account using the client username and password
     private void createAccount() throws IOException {
         System.out.print("Enter username: ");
         String username = reader.readLine();
@@ -191,6 +191,7 @@ public class ClientHandler {
         }
     }
     
+    // Login using the client username and password
     private void login() throws IOException {
         System.out.print("Enter username: ");
         String username = this.reader.readLine();
@@ -209,6 +210,7 @@ public class ClientHandler {
         }
     }
 
+    // Write data to the server's map
     private void putData() throws IOException {
         System.out.print("Enter key: ");
         String key = reader.readLine();
@@ -231,6 +233,7 @@ public class ClientHandler {
         putThread.start();
     }
 
+    // Write multiple data to the server's map
     private void multiPutData() throws IOException {
         HashMap<String, byte[]> pairs = new HashMap<>();
 
@@ -261,6 +264,7 @@ public class ClientHandler {
         multiPutThread.start();
     }
 
+    // Request data from the server's map
     private void getData() throws IOException {
         System.out.print("Enter key to fetch data: ");
         String key = reader.readLine();
@@ -283,6 +287,7 @@ public class ClientHandler {
         getThread.start();
     }
 
+    // Request multiple data from the server's map
     private void multiGetData() throws IOException {
         System.out.print("How many keys do you want to retrieve information from: ");
         int numKeys = Integer.parseInt(reader.readLine());
@@ -313,6 +318,7 @@ public class ClientHandler {
         multiGetThread.start();
     }
 
+    // Request data from the server's map when a condition is met
     private void getWhenCondition() throws IOException {
         System.out.print("Enter key to fetch data from: ");
         String keyWhen = reader.readLine();
@@ -343,6 +349,8 @@ public class ClientHandler {
         getWhenThread.start();
     }
 
+    // Add an operation to the number of operations
+    // It is used to keep track of the number of operations currently running
     public void addOperation() {
         lock.lock();
         try {
@@ -352,6 +360,8 @@ public class ClientHandler {
         }
     }
 
+    // Remove an operation from the number of operations
+    // It is used to keep track of the number of operations currently running
     public void removeOperation() {
         lock.lock();
         try {
