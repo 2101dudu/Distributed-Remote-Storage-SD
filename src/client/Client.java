@@ -27,8 +27,8 @@ public class Client {
     }
 
     // This method handles multiple write operations by sending a set of key-value pairs to the server.
-    // If a key does not exist on the server, a new entry is created with the provided key and value.
-    // If a key already exists, the associated entry is updated with the new value.
+    // For each key that does not exist on the server, a new entry is created with the provided key and value.
+    // For each key that already exists, the associated entry is updated with the new value.
     public void multiPut(Map<String, byte[]> pairs) throws IOException {
         MultiPutPacket multiPutPacket = new MultiPutPacket(pairs);
         PacketWrapper packetWrapper = new PacketWrapper(PacketType.MULTI_PUT, multiPutPacket);
@@ -78,7 +78,7 @@ public class Client {
         return putPacket.getData();
     }
 
-    // This method registers a new user with the server by sending a username and password.
+    // This method is used to register a new user or log in an existing user with the server by sending a username and password.
     // If the username is not already registered, a new user is created with the provided username and password.
     // If the username is already registered, the operation is aborted.
     public boolean authenticate(String username, String password, int authenticationType) throws IOException {
