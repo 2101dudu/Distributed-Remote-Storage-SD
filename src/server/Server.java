@@ -18,13 +18,12 @@ public class Server implements Serializable {
     private final Lock writeClientsLock = readWriteClientsLock.writeLock();
     private final Lock readClientsLock = readWriteClientsLock.readLock();
 
-    // each condition is associated with the entries map's lock
-    private HashMap<String, Condition> getWhenConditions;
+    private HashMap<String, Condition> getWhenConditions; // each condition is associated with the entries map's lock
     private final ReadWriteLock readWriteWhenConditionsLock = new ReentrantReadWriteLock();
     private final Lock writeWhenConditionsLock = readWriteWhenConditionsLock.writeLock();
     private final Lock readWhenConditionsLock = readWriteWhenConditionsLock.readLock();
 
-    private int S;
+    private int S; // maximum number of concurrent sessions
     private int sessionsCount;
     private final ReadWriteLock readWriteSessionsLock = new ReentrantReadWriteLock();
     private final Lock writeSessionsLock = readWriteSessionsLock.writeLock();
@@ -58,6 +57,7 @@ public class Server implements Serializable {
         isRunning = false;
     }
 
+    // This method is used to update the entries map and signal the conditions associated with the getWhen method 
     public void update(String key, byte[] data) {
         writeEntriesLock.lock();
         try {
@@ -84,6 +84,7 @@ public class Server implements Serializable {
         }
     }
 
+    // This method is used to update the entries map and signal the conditions associated with the getWhen method
     public void multiUpdate(Map<String, byte[]> pairs) {
         writeEntriesLock.lock();
         try {
@@ -119,6 +120,7 @@ public class Server implements Serializable {
         }
     }
 
+    // This method is used to get the value associated with a key in the entries map
     public PutPacket getEntry(String key) {
         byte[] data;
         readEntriesLock.lock();
@@ -130,6 +132,7 @@ public class Server implements Serializable {
         return new PutPacket(key, data);
     }
 
+    // This method is used to get the values associated with a set of keys in the entries map
     public MultiPutPacket mutliGetEntry(Set<String> keys) {
         HashMap<String, byte[]> pairs = new HashMap<>();
         readEntriesLock.lock();
@@ -143,8 +146,7 @@ public class Server implements Serializable {
         return new MultiPutPacket(pairs);
     }
 
-    // REMINDER: in between the await inside writeEntriesLock and the get 
-    // inside readEntriesLock, the data can be updated
+    // This method is used to get the value associated with a key in the entries map when a condition is met
     public PutPacket getEntryWhen(String key, String keyCond, byte[] dataCond) throws InterruptedException {
         String compositeKey = keyCond + Arrays.hashCode(dataCond);
 
@@ -191,6 +193,7 @@ public class Server implements Serializable {
         return new PutPacket(key, data);
     }
 
+    // This method is used to insert a new client into the clients map, validating that the username is unique
     public boolean register(String username, String password) {
         readClientsLock.lock();
         try {
@@ -208,6 +211,7 @@ public class Server implements Serializable {
         }
     }
 
+    // This method is used to authenticate a client by checking the username and password against the clients map
     public boolean authenticate(String username, String password) throws InterruptedException {
         String existingPassword;
         readClientsLock.lock();

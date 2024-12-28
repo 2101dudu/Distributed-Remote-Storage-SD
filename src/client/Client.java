@@ -16,12 +16,9 @@ public class Client {
     }
 
 
-    // Operação de escrita, enviando par chave-valor:
-    //
-    //      void put(String key, byte[] value) 
-    //
-    // Se a chave não existir, é criada uma nova entrada no servidor, com o par 
-    // chave-valor enviado. Caso contrário, a entrada deverá ser atualizada com o novo valor.
+    // This method performs a write operation by sending a key-value pair to the server. 
+    // If the key does not exist on the server, a new entry is created with the provided key and value. 
+    // If the key already exists, the associated entry is updated with the new value.
     public void put(String key, byte[] value) throws IOException {
         PutPacket putPacket = new PutPacket(key, value);
         PacketWrapper packetWrapper = new PacketWrapper(PacketType.PUT, putPacket);
@@ -29,12 +26,9 @@ public class Client {
         conn.send(packetWrapper);
     }
 
-    // Operação de escrita composta:
-    //
-    // void multiPut(Map<String, byte[]> pairs).
-    //
-    // Todos os pares chave-valor deverão ser atualizados / inseridos
-    // atomicamente.
+    // This method handles multiple write operations by sending a set of key-value pairs to the server.
+    // For each key that does not exist on the server, a new entry is created with the provided key and value.
+    // For each key that already exists, the associated entry is updated with the new value.
     public void multiPut(Map<String, byte[]> pairs) throws IOException {
         MultiPutPacket multiPutPacket = new MultiPutPacket(pairs);
         PacketWrapper packetWrapper = new PacketWrapper(PacketType.MULTI_PUT, multiPutPacket);
@@ -42,12 +36,9 @@ public class Client {
         conn.send(packetWrapper);
     }
 
-    // Operação de leitura:
-    //
-    // byte[] get(String key)
-    //
-    // Para uma chave key, deverá devolver ao cliente o respetivo valor,
-    // ou null caso a chave não exista.
+    // This method performs a read operation by sending a key to the server.
+    // If the key exists on the server, the associated value is returned.
+    // If the key does not exist on the server, a null value is returned.
     public byte[] get(String key) throws IOException {
         GetPacket getPacket = new GetPacket(key);
         PacketWrapper packetWrapper = new PacketWrapper(PacketType.GET, getPacket);
@@ -59,12 +50,9 @@ public class Client {
         return putPacket.getData();
     }
 
-    // Operação de leitura composta:
-    //
-    // Map<String, byte[]> multiGet(Set<String> keys).
-    //
-    // Dado um conjunto de chaves, devolve o conjunto de pares chave-valor 
-    // respetivo.
+    // This method handles multiple read operations by sending a set of keys to the server.
+    // For each key that exists on the server, the associated value is returned.
+    // For each key that does not exist on the server, a null value is returned.
     public Map<String, byte[]> multiGet(Set<String> keys) throws IOException {
         MultiGetPacket multiGetPacket = new MultiGetPacket(keys);
         PacketWrapper packetWrapper = new PacketWrapper(PacketType.MULTI_GET, multiGetPacket);
@@ -76,13 +64,9 @@ public class Client {
         return multiPutPacket.getPairs();
     }
 
-    // Leitura condicional:
-    //
-    // byte[] getWhen(String key, String keyCond, byte[] valueCond).
-    //
-    // Deverá ser devolvido o valor da chave key quando o valor relativo à
-    // chave keyCond seja igual a valueCond, devendo a operação ficar bloqueada
-    // até tal acontecer.
+    // This method performs a conditional write operation by sending a key, a conditional key, and a conditional value to the server.
+    // If the conditional key exists on the server and its associated value matches the conditional value, the key-value pair is written to the server.
+    // If the conditional key does not exist on the server or its associated value does not match the conditional value, the operation is aborted.
     public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws IOException {
         GetWhenPacket getWhenPacket = new GetWhenPacket(key, keyCond, valueCond);
         PacketWrapper packetWrapper = new PacketWrapper(PacketType.GET_WHEN, getWhenPacket);
@@ -94,7 +78,9 @@ public class Client {
         return putPacket.getData();
     }
 
-    // Operação de autenticação — registo e login.
+    // This method is used to register a new user or log in an existing user with the server by sending a username and password.
+    // If the username is not already registered, a new user is created with the provided username and password.
+    // If the username is already registered, the operation is aborted.
     public boolean authenticate(String username, String password, int authenticationType) throws IOException {
         AuthPacket auth = new AuthPacket(username, password);
         PacketWrapper packetWrapper = new PacketWrapper(authenticationType, auth);
@@ -106,10 +92,12 @@ public class Client {
         return ackPacket.getAck();
     }
 
+    // This method closes the connection to the server.
     public void closeConnection() throws IOException {
         conn.close();
     }
 
+    // This method sends a shutdown request to the server to initiate the server shutdown process.
     public void shutdownServer() throws IOException {
         PacketWrapper packetWrapper = new PacketWrapper(PacketType.SHUTDOWN, null);
         conn.send(packetWrapper);
